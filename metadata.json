@@ -1,0 +1,6 @@
+{
+  "name": "Aymoré Financiamentos",
+  "description": "Portal de Autoatendimento Oficial da Aymoré Crédito, Financiamento e Investimento S.A. Acesse 2ª via de boletos, quitação de contratos, parcelamentos, antecipações e serviços prestados.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
