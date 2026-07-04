@@ -45,11 +45,108 @@ const WHATSAPP_URL = "https://wa.me/5511999999999";
 const DEMO_CPF_CNPJ = "123.456.789-00";
 const demoClientData = generateClientData(DEMO_CPF_CNPJ);
 
+const tabPathMap: Record<ActiveTab, string> = {
+  [ActiveTab.HOME]: "/",
+  [ActiveTab.BOLETO]: "/2via",
+  [ActiveTab.QUITACAO]: "/quitação",
+  [ActiveTab.PARCELAMENTO]: "/parcelamento",
+  [ActiveTab.ANTECIPACAO]: "/antecipação",
+  [ActiveTab.SOBRE_NOS]: "/sobrenós",
+  [ActiveTab.SERVICOS]: "/serviços"
+};
+
+function getTabFromPathname(path: string): ActiveTab {
+  let cleanPath = decodeURIComponent(path).toLowerCase().replace(/^\/+|\/+$/g, "");
+  const normalized = cleanPath.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  
+  if (normalized === "" || normalized === "inicio" || normalized === "home") {
+    return ActiveTab.HOME;
+  }
+  if (normalized === "2via") {
+    return ActiveTab.BOLETO;
+  }
+  if (normalized === "quitacao") {
+    return ActiveTab.QUITACAO;
+  }
+  if (normalized === "parcelamento" || normalized === "negociacao") {
+    return ActiveTab.PARCELAMENTO;
+  }
+  if (normalized === "antecipacao") {
+    return ActiveTab.ANTECIPACAO;
+  }
+  if (normalized === "sobrenos" || normalized === "sobre-nos") {
+    return ActiveTab.SOBRE_NOS;
+  }
+  if (normalized === "servicos") {
+    return ActiveTab.SERVICOS;
+  }
+  if (normalized === "contato") {
+    return ActiveTab.HOME;
+  }
+  
+  return ActiveTab.HOME;
+}
+
+function getPathnameFromTab(tab: ActiveTab): string {
+  return tabPathMap[tab] || "/";
+}
+
 export default function App() {
   // Navigation & Data State
-  const [activeTab, setActiveTab] = useState<ActiveTab>(ActiveTab.HOME);
+  const [activeTab, setActiveTab] = useState<ActiveTab>(() => getTabFromPathname(window.location.pathname));
   const [clientData] = useState<ClientData | null>(demoClientData);
   const [selectedContractIndex, setSelectedContractIndex] = useState(0);
+
+  // Sync state with browser back/forward and handle special scroll behaviors like /contato
+  useEffect(() => {
+    const handleUrlChange = () => {
+      const currentPath = window.location.pathname;
+      const currentTab = getTabFromPathname(currentPath);
+      setActiveTab(currentTab);
+      
+      const cleanPath = decodeURIComponent(currentPath).toLowerCase().replace(/^\/+|\/+$/g, "");
+      const normalized = cleanPath.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      if (normalized === "contato") {
+        setTimeout(() => {
+          const footer = document.querySelector("footer");
+          if (footer) {
+            footer.scrollIntoView({ behavior: "smooth" });
+          }
+        }, 150);
+      }
+    };
+
+    window.addEventListener("popstate", handleUrlChange);
+    // Initial check for scroll when opening directly via deep linking on /contato
+    const initialPath = decodeURIComponent(window.location.pathname).toLowerCase().replace(/^\/+|\/+$/g, "");
+    if (initialPath.normalize("NFD").replace(/[\u0300-\u036f]/g, "") === "contato") {
+      setTimeout(() => {
+        const footer = document.querySelector("footer");
+        if (footer) {
+          footer.scrollIntoView({ behavior: "smooth" });
+        }
+      }, 300);
+    }
+
+    return () => {
+      window.removeEventListener("popstate", handleUrlChange);
+    };
+  }, []);
+
+  // Update browser URL on activeTab changes dynamically
+  useEffect(() => {
+    const currentPath = window.location.pathname;
+    const targetPath = getPathnameFromTab(activeTab);
+    
+    // Check if current path already maps to activeTab (preserves custom URL paths e.g. /negociação or /quitacao)
+    if (getTabFromPathname(currentPath) === activeTab) {
+      return;
+    }
+    
+    if (currentPath !== targetPath) {
+      window.history.pushState(null, "", targetPath);
+    }
+  }, [activeTab]);
   
   // Interaction States
   const [selectedBoleto, setSelectedBoleto] = useState<Bill | null>(null);
