@@ -41,7 +41,7 @@ import {
   FAQ_DATA 
 } from "./data";
 
-const WHATSAPP_URL = "https://wa.me/5511999999999";
+const WHATSAPP_URL = "https://api.whatsapp.com";
 const DEMO_CPF_CNPJ = "123.456.789-00";
 const demoClientData = generateClientData(DEMO_CPF_CNPJ);
 
@@ -1106,7 +1106,7 @@ export default function App() {
 
       {/* FLOAT FLOATING WHATSAPP BUTTON */}
       <a 
-        href="https://wa.me/5511999999999" 
+        href={WHATSAPP_URL} 
         target="_blank" 
         rel="noopener noreferrer"
         className="fixed bottom-6 right-6 z-40 bg-emerald-600 hover:bg-emerald-700 hover:scale-105 active:scale-95 transition-all text-white p-4 rounded-full shadow-2xl flex items-center justify-center gap-2 font-bold text-sm tracking-wide group cursor-pointer"
