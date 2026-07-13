@@ -41,7 +41,7 @@ import {
   FAQ_DATA 
 } from "./data";
 
-const WHATSAPP_URL = "https://api.whatsapp.com";
+const WHATSAPP_URL = "https://api.whatsapp.com/send?phone=5511966689764&text=Solicito%20Atendimento";
 const DEMO_CPF_CNPJ = "123.456.789-00";
 const demoClientData = generateClientData(DEMO_CPF_CNPJ);
 
