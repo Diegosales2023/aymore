@@ -1571,7 +1571,7 @@ export default function App() {
               ) : (
                 // Form View
                 <form 
-                  onSubmit={(e) => {
+                  onSubmit={async (e) => {
                     e.preventDefault();
                     
                     // Validation
@@ -1594,15 +1594,40 @@ export default function App() {
                     setContactErrors({});
                     setIsSubmittingContact(true);
                     
-                    // Simulate server submit delay
-                    setTimeout(() => {
+                    try {
+                      const response = await fetch("/api/contact", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          name: contactForm.name,
+                          cpf: contactForm.cpf,
+                          email: contactForm.email,
+                          phone: contactForm.phone,
+                          subject: contactSubject || "Atendimento Geral",
+                          message: contactForm.message || ""
+                        })
+                      });
+                      
+                      const result = await response.json();
+                      
+                      if (!response.ok) {
+                        throw new Error(result.error || "Erro ao salvar no Supabase");
+                      }
+                      
                       setIsSubmittingContact(false);
                       setContactSubmitSuccess(true);
                       setToast({
-                        message: "Formulário de atendimento enviado com sucesso!",
+                        message: "Formulário enviado e salvo no Supabase com sucesso!",
                         type: "success"
                       });
-                    }, 1000);
+                    } catch (error: any) {
+                      console.error("Erro ao enviar formulário:", error);
+                      setIsSubmittingContact(false);
+                      setToast({
+                        message: `Erro ao salvar no Supabase: ${error.message || "Tente novamente."}`,
+                        type: "error"
+                      });
+                    }
                   }}
                   className="p-5 space-y-3.5 text-left"
                 >

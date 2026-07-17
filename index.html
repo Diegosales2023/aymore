@@ -27,6 +27,25 @@
           console.warn("Failed to configure fetch property:", e);
         }
       })();
+
+      // Suppress benign WebSocket and Vite HMR errors caused by sandbox environment constraints
+      window.addEventListener('unhandledrejection', function(event) {
+        var reason = event.reason;
+        if (reason) {
+          var msg = reason.message || (typeof reason === 'string' ? reason : '');
+          if (msg.indexOf('WebSocket') !== -1 || msg.indexOf('websocket') !== -1 || msg.indexOf('opened') !== -1) {
+            event.preventDefault();
+            console.debug('Suppressed benign HMR WebSocket rejection:', reason);
+          }
+        }
+      });
+      window.addEventListener('error', function(event) {
+        var msg = event.message || '';
+        if (msg.indexOf('WebSocket') !== -1 || msg.indexOf('websocket') !== -1) {
+          event.preventDefault();
+          console.debug('Suppressed benign HMR WebSocket error:', msg);
+        }
+      }, true);
     </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
