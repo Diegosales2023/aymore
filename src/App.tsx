@@ -1518,10 +1518,10 @@ export default function App() {
               initial={{ scale: 0.95, y: 15 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 15 }}
-              className="bg-white rounded-xl max-w-lg w-full overflow-hidden text-zinc-800 shadow-2xl relative border border-zinc-200 flex flex-col"
+              className="bg-white rounded-xl max-w-md w-full overflow-hidden text-zinc-800 shadow-2xl relative border border-zinc-200 flex flex-col"
             >
               {/* Header with Brand Color */}
-              <div className="bg-[#ec0000] p-6 text-white relative">
+              <div className="bg-[#ec0000] p-5 text-white relative">
                 <button 
                   onClick={() => setIsContactModalOpen(false)}
                   className="absolute top-4 right-4 text-white/80 hover:text-white hover:scale-110 transition-transform cursor-pointer border-0 bg-transparent p-1"
@@ -1604,7 +1604,7 @@ export default function App() {
                       });
                     }, 1000);
                   }}
-                  className="p-6 space-y-4 text-left"
+                  className="p-5 space-y-3.5 text-left"
                 >
                   {/* Name field */}
                   <div className="space-y-1">
