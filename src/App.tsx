@@ -228,6 +228,19 @@ export default function App() {
   const [contactErrors, setContactErrors] = useState<Record<string, string>>({});
   const [isSubmittingContact, setIsSubmittingContact] = useState(false);
   const [contactSubmitSuccess, setContactSubmitSuccess] = useState(false);
+  const [supabaseStatus, setSupabaseStatus] = useState<{ configured: boolean; url: string | null; hasKey: boolean; isPlaceholder: boolean } | null>(null);
+
+  const checkSupabaseStatus = async () => {
+    try {
+      const res = await fetch("/api/supabase-status");
+      if (res.ok) {
+        const data = await res.json();
+        setSupabaseStatus(data);
+      }
+    } catch (e) {
+      console.warn("Failed to fetch supabase status", e);
+    }
+  };
 
   const openContactForm = (subject: string) => {
     setContactSubject(subject);
@@ -242,6 +255,7 @@ export default function App() {
     setContactSubmitSuccess(false);
     setShowSqlHelper(false);
     setIsContactModalOpen(true);
+    checkSupabaseStatus();
   };
 
   // Auto-dismiss toasts
@@ -1708,6 +1722,30 @@ ALTER TABLE public.contatos DISABLE ROW LEVEL SECURITY;`,
                   }}
                   className="p-5 space-y-3.5 text-left"
                 >
+                  {/* Supabase Status Alert */}
+                  {supabaseStatus && (
+                    <div className={`p-2.5 rounded-lg border text-[11px] leading-tight flex items-start gap-2 ${
+                      supabaseStatus.configured 
+                        ? "bg-emerald-50 border-emerald-200 text-emerald-800" 
+                        : "bg-amber-50 border-amber-200 text-amber-800"
+                    }`}>
+                      <AlertTriangle className={`w-4 h-4 shrink-0 mt-0.5 ${supabaseStatus.configured ? "text-emerald-600" : "text-amber-600"}`} />
+                      <div className="flex-1">
+                        {supabaseStatus.configured ? (
+                          <>
+                            <strong className="block font-bold mb-0.5">Supabase Personalizado Conectado! ✅</strong>
+                            <span>Seu banco de dados foi configurado e está ativo para receber as leads.</span>
+                          </>
+                        ) : (
+                          <>
+                            <strong className="block font-bold mb-0.5">Demonstração Ativa (Sem Supabase Próprio) ⚠️</strong>
+                            <span>Você precisa conectar o seu projeto do Supabase para salvar e consultar as leads permanentemente. Clique em <button type="button" onClick={() => setShowSqlHelper(true)} className="underline text-amber-950 font-bold bg-transparent border-0 cursor-pointer p-0 hover:text-amber-700 transition-colors">Configuração SQL</button> ou siga o passo a passo.</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Name field */}
                   <div className="space-y-1">
                     <label className="block text-[10px] font-bold text-zinc-700 uppercase tracking-wide">Nome Completo</label>

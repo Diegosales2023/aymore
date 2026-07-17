@@ -30,6 +30,21 @@ async function startServer() {
   const app = express();
   app.use(express.json());
 
+  // API Route to check Supabase configuration status
+  app.get("/api/supabase-status", (req, res) => {
+    const url = process.env.SUPABASE_URL || process.env.SUPASE_URL;
+    const key = process.env.SUPABASE_ANONKEY || process.env.SUPASE_ANONKEY;
+    
+    const isConfigured = !!(url && key && url !== "https://kpjkmegvfracwmqftntt.supabase.co" && !key.startsWith("sb_secret_"));
+    
+    return res.json({
+      configured: isConfigured,
+      url: url ? `${url.substring(0, 25)}...` : null,
+      hasKey: !!key,
+      isPlaceholder: !isConfigured
+    });
+  });
+
   // API Route to submit lead data to Supabase
   app.post("/api/contact", async (req, res) => {
     try {
