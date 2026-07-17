@@ -29,7 +29,8 @@ import {
   Sparkles,
   ExternalLink,
   ShieldAlert,
-  ArrowRight
+  ArrowRight,
+  X
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { ActiveTab, Contract, Bill, ClientData } from "./types";
@@ -44,6 +45,49 @@ import {
 const WHATSAPP_URL = "https://api.whatsapp.com/send?phone=5511966689764&text=Solicito%20Atendimento";
 const DEMO_CPF_CNPJ = "123.456.789-00";
 const demoClientData = generateClientData(DEMO_CPF_CNPJ);
+
+const CONTACT_SUBJECTS = [
+  "Atendimento Geral",
+  "2ª Via de Boleto / PIX",
+  "Quitação de Contrato",
+  "Parcelamento / Renegociação",
+  "Antecipação de Parcelas",
+  "Simulação de Financiamento",
+  "Dúvidas ou Outros Assuntos"
+];
+
+const maskCpfCnpj = (value: string) => {
+  const clean = value.replace(/\D/g, "");
+  if (clean.length <= 11) {
+    return clean
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d{1,2})/, "$1-$2")
+      .slice(0, 14);
+  } else {
+    return clean
+      .replace(/(\d{2})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1/$2")
+      .replace(/(\d{4})(\d{1,2})/, "$1-$2")
+      .slice(0, 18);
+  }
+};
+
+const maskPhone = (value: string) => {
+  const clean = value.replace(/\D/g, "");
+  if (clean.length <= 10) {
+    return clean
+      .replace(/(\d{2})(\d)/, "($1) $2")
+      .replace(/(\d{4})(\d{1,4})/, "$1-$2")
+      .slice(0, 14);
+  } else {
+    return clean
+      .replace(/(\d{2})(\d)/, "($1) $2")
+      .replace(/(\d{5})(\d{1,4})/, "$1-$2")
+      .slice(0, 15);
+  }
+};
 
 const tabPathMap: Record<ActiveTab, string> = {
   [ActiveTab.HOME]: "/",
@@ -169,6 +213,34 @@ export default function App() {
   const [simuladorAssetValue, setSimuladorAssetValue] = useState<number>(65000);
   const [simuladorDownPayment, setSimuladorDownPayment] = useState<number>(15000);
   const [simuladorInstallmentsCount, setSimuladorInstallmentsCount] = useState<number>(48);
+
+  // Lead / Contact Form States
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+  const [contactSubject, setContactSubject] = useState("");
+  const [contactForm, setContactForm] = useState({
+    name: "",
+    cpf: "",
+    email: "",
+    phone: "",
+    message: ""
+  });
+  const [contactErrors, setContactErrors] = useState<Record<string, string>>({});
+  const [isSubmittingContact, setIsSubmittingContact] = useState(false);
+  const [contactSubmitSuccess, setContactSubmitSuccess] = useState(false);
+
+  const openContactForm = (subject: string) => {
+    setContactSubject(subject);
+    setContactForm({
+      name: "",
+      cpf: "",
+      email: "",
+      phone: "",
+      message: ""
+    });
+    setContactErrors({});
+    setContactSubmitSuccess(false);
+    setIsContactModalOpen(true);
+  };
 
   // Auto-dismiss toasts
   useEffect(() => {
@@ -337,15 +409,13 @@ export default function App() {
               </div>
             </div>
 
-            {/* Atendimento WhatsApp Button */}
-            <a 
-              href={WHATSAPP_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-emerald-600 hover:bg-emerald-700 hover:scale-[1.02] active:scale-[0.98] transition-all text-white font-bold py-2.5 px-5 rounded-full text-xs flex items-center gap-2 shadow-md cursor-pointer select-none"
+            {/* Atendimento Online Button */}
+            <button 
+              onClick={() => openContactForm("Atendimento Geral")}
+              className="bg-[#ec0000] hover:bg-red-700 hover:scale-[1.02] active:scale-[0.98] transition-all text-white font-bold py-2.5 px-5 rounded-full text-xs flex items-center gap-2 shadow-md cursor-pointer select-none border-0"
             >
-              <Phone className="w-4 h-4" /> Atendimento WhatsApp
-            </a>
+              <Phone className="w-4 h-4" /> Solicitar Atendimento
+            </button>
           </div>
 
           {/* MAIN DESKTOP NAVIGATION BAR */}
@@ -482,14 +552,12 @@ export default function App() {
                         </p>
                       </div>
 
-                      <a 
-                        href={WHATSAPP_URL}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-full bg-white hover:bg-red-50 active:scale-[0.98] text-[#ec0000] font-extrabold py-4 rounded-lg text-xs uppercase tracking-wider shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer text-center"
+                      <button 
+                        onClick={() => openContactForm("Atendimento Geral")}
+                        className="w-full bg-white hover:bg-red-50 active:scale-[0.98] text-[#ec0000] font-extrabold py-4 rounded-lg text-xs uppercase tracking-wider shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer text-center border-0"
                       >
-                        Iniciar Atendimento no WhatsApp
-                      </a>
+                        Iniciar Atendimento Online
+                      </button>
                     </div>
 
                     <div className="border-t border-white/10 pt-4 text-center relative z-10">
@@ -659,14 +727,12 @@ export default function App() {
                   </div>
 
                   <div className="pt-4">
-                    <a 
-                      href={WHATSAPP_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="bg-[#ec0000] hover:bg-[#cc0000] hover:scale-[1.02] active:scale-[0.98] transition-all text-white font-black py-4 px-8 rounded-lg text-xs uppercase tracking-wider shadow-lg inline-flex items-center justify-center gap-2 cursor-pointer select-none"
+                    <button 
+                      onClick={() => openContactForm("2ª Via de Boleto / PIX")}
+                      className="bg-[#ec0000] hover:bg-[#cc0000] hover:scale-[1.02] active:scale-[0.98] transition-all text-white font-black py-4 px-8 rounded-lg text-xs uppercase tracking-wider shadow-lg inline-flex items-center justify-center gap-2 cursor-pointer select-none border-0"
                     >
-                      <Phone className="w-4 h-4" /> Solicitar 2ª Via de Boleto via WhatsApp
-                    </a>
+                      <Phone className="w-4 h-4" /> Solicitar 2ª Via de Boleto / PIX
+                    </button>
                   </div>
                 </div>
 
@@ -700,14 +766,12 @@ export default function App() {
                   </div>
 
                   <div className="pt-4">
-                    <a 
-                      href={WHATSAPP_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="bg-[#ec0000] hover:bg-[#cc0000] hover:scale-[1.02] active:scale-[0.98] transition-all text-white font-black py-4 px-8 rounded-lg text-xs uppercase tracking-wider shadow-lg inline-flex items-center justify-center gap-2 cursor-pointer select-none"
+                    <button 
+                      onClick={() => openContactForm("Quitação de Contrato")}
+                      className="bg-[#ec0000] hover:bg-[#cc0000] hover:scale-[1.02] active:scale-[0.98] transition-all text-white font-black py-4 px-8 rounded-lg text-xs uppercase tracking-wider shadow-lg inline-flex items-center justify-center gap-2 cursor-pointer select-none border-0"
                     >
-                      <Phone className="w-4 h-4" /> Solicitar Quitação Oficial via WhatsApp
-                    </a>
+                      <Phone className="w-4 h-4" /> Solicitar Quitação Oficial
+                    </button>
                   </div>
                 </div>
 
@@ -741,14 +805,12 @@ export default function App() {
                   </div>
 
                   <div className="pt-4">
-                    <a 
-                      href={WHATSAPP_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="bg-[#ec0000] hover:bg-[#cc0000] hover:scale-[1.02] active:scale-[0.98] transition-all text-white font-black py-4 px-8 rounded-lg text-xs uppercase tracking-wider shadow-lg inline-flex items-center justify-center gap-2 cursor-pointer select-none"
+                    <button 
+                      onClick={() => openContactForm("Parcelamento / Renegociação")}
+                      className="bg-[#ec0000] hover:bg-[#cc0000] hover:scale-[1.02] active:scale-[0.98] transition-all text-white font-black py-4 px-8 rounded-lg text-xs uppercase tracking-wider shadow-lg inline-flex items-center justify-center gap-2 cursor-pointer select-none border-0"
                     >
-                      <Phone className="w-4 h-4" /> Solicitar Acordo de Parcelamento via WhatsApp
-                    </a>
+                      <Phone className="w-4 h-4" /> Solicitar Acordo de Parcelamento
+                    </button>
                   </div>
                 </div>
 
@@ -782,14 +844,12 @@ export default function App() {
                   </div>
 
                   <div className="pt-4">
-                    <a 
-                      href={WHATSAPP_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="bg-[#ec0000] hover:bg-[#cc0000] hover:scale-[1.02] active:scale-[0.98] transition-all text-white font-black py-4 px-8 rounded-lg text-xs uppercase tracking-wider shadow-lg inline-flex items-center justify-center gap-2 cursor-pointer select-none"
+                    <button 
+                      onClick={() => openContactForm("Antecipação de Parcelas")}
+                      className="bg-[#ec0000] hover:bg-[#cc0000] hover:scale-[1.02] active:scale-[0.98] transition-all text-white font-black py-4 px-8 rounded-lg text-xs uppercase tracking-wider shadow-lg inline-flex items-center justify-center gap-2 cursor-pointer select-none border-0"
                     >
-                      <Phone className="w-4 h-4" /> Solicitar Boleto de Antecipação via WhatsApp
-                    </a>
+                      <Phone className="w-4 h-4" /> Solicitar Boleto de Antecipação
+                    </button>
                   </div>
                 </div>
 
@@ -1057,12 +1117,11 @@ export default function App() {
                       <div className="pt-2 relative">
                         <button
                           onClick={() => {
-                            setToast({ message: "Simulação iniciada! Fale conosco no WhatsApp.", type: "success" });
-                            window.open(WHATSAPP_URL, "_blank");
+                            openContactForm("Simulação de Financiamento");
                           }}
-                          className="w-full bg-[#ec0000] hover:bg-[#cc0000] text-white font-bold py-3 rounded-lg text-xs uppercase tracking-wider shadow flex items-center justify-center gap-2 cursor-pointer"
+                          className="w-full bg-[#ec0000] hover:bg-[#cc0000] text-white font-bold py-3 rounded-lg text-xs uppercase tracking-wider shadow flex items-center justify-center gap-2 cursor-pointer border-0"
                         >
-                          Contratar Financiamento via WhatsApp
+                          Contratar Financiamento Online
                         </button>
                       </div>
 
@@ -1078,21 +1137,19 @@ export default function App() {
             <Phone className="w-8 h-8" />
           </div>
           <div className="space-y-2">
-            <h3 className="text-xl font-black text-zinc-900">Não localizou sua demanda? Atendimento no WhatsApp</h3>
+            <h3 className="text-xl font-black text-zinc-900">Não localizou sua demanda? Atendimento Online</h3>
             <p className="text-xs text-zinc-500 max-w-lg mx-auto leading-relaxed">
               Nosso time especializado de suporte está disponível em tempo real para ajudar você com emissão de vias, quitações personalizadas, esclarecimento de dúvidas e qualquer outra demanda cadastral.
             </p>
           </div>
 
           <div className="pt-2">
-            <a 
-              href={WHATSAPP_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-extrabold py-3.5 px-8 rounded-full text-xs uppercase tracking-wider shadow-md transition-all cursor-pointer"
+            <button 
+              onClick={() => openContactForm("Dúvidas ou Outros Assuntos")}
+              className="inline-flex items-center gap-2.5 bg-[#ec0000] hover:bg-[#cc0000] active:scale-[0.98] text-white font-extrabold py-3.5 px-8 rounded-full text-xs uppercase tracking-wider shadow-md transition-all cursor-pointer border-0"
             >
-              Falar Conosco no WhatsApp <ExternalLink className="w-4 h-4" />
-            </a>
+              Falar com Atendente Online <ArrowRight className="w-4 h-4" />
+            </button>
           </div>
 
           <p className="text-[10px] text-zinc-400">
@@ -1104,19 +1161,17 @@ export default function App() {
         </AnimatePresence>
       </main>
 
-      {/* FLOAT FLOATING WHATSAPP BUTTON */}
-      <a 
-        href={WHATSAPP_URL} 
-        target="_blank" 
-        rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 z-40 bg-emerald-600 hover:bg-emerald-700 hover:scale-105 active:scale-95 transition-all text-white p-4 rounded-full shadow-2xl flex items-center justify-center gap-2 font-bold text-sm tracking-wide group cursor-pointer"
-        title="Falar no WhatsApp"
+      {/* FLOAT FLOATING CONTACT BUTTON */}
+      <button 
+        onClick={() => openContactForm("Atendimento Geral")}
+        className="fixed bottom-6 right-6 z-40 bg-[#ec0000] hover:bg-[#cc0000] hover:scale-105 active:scale-95 transition-all text-white p-4 rounded-full shadow-2xl flex items-center justify-center gap-2 font-bold text-sm tracking-wide group cursor-pointer border-0"
+        title="Solicitar Atendimento"
       >
         <Phone className="w-5 h-5 animate-pulse" />
         <span className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 ease-out whitespace-nowrap">
-          Fale Conosco via WhatsApp
+          Solicitar Atendimento Online
         </span>
-      </a>
+      </button>
 
       {/* FOOTER */}
       <footer className="bg-zinc-950 text-[#888888] pt-16 pb-8 border-t border-zinc-900 select-none">
@@ -1445,6 +1500,234 @@ export default function App() {
                 </button>
               </div>
 
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ----------------- MODAL: CONTACT FORM DIALOG ----------------- */}
+      <AnimatePresence>
+        {isContactModalOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/70 z-50 overflow-y-auto flex items-center justify-center p-4 backdrop-blur-xs font-sans"
+          >
+            <motion.div 
+              initial={{ scale: 0.95, y: 15 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 15 }}
+              className="bg-white rounded-xl max-w-lg w-full overflow-hidden text-zinc-800 shadow-2xl relative border border-zinc-200 flex flex-col"
+            >
+              {/* Header with Brand Color */}
+              <div className="bg-[#ec0000] p-6 text-white relative">
+                <button 
+                  onClick={() => setIsContactModalOpen(false)}
+                  className="absolute top-4 right-4 text-white/80 hover:text-white hover:scale-110 transition-transform cursor-pointer border-0 bg-transparent p-1"
+                  title="Fechar"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-white text-[#ec0000] rounded-lg flex items-center justify-center font-bold text-lg select-none">
+                    S
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-lg leading-tight">Central de Atendimento Aymoré</h3>
+                    <p className="text-white/80 text-[11px]">Preencha os dados abaixo para iniciar seu atendimento</p>
+                  </div>
+                </div>
+              </div>
+
+              {contactSubmitSuccess ? (
+                // Success State View
+                <div className="p-8 text-center space-y-6 flex flex-col items-center">
+                  <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center border border-emerald-100 shadow-sm">
+                    <Check className="w-8 h-8" />
+                  </div>
+                  <div className="space-y-2">
+                    <h4 className="text-xl font-bold text-zinc-900">Solicitação Enviada!</h4>
+                    <p className="text-xs text-zinc-600 max-w-sm mx-auto leading-relaxed">
+                      Seu formulário de contato para o assunto <strong className="text-zinc-950 font-black">"{contactSubject}"</strong> foi registrado com sucesso em nosso sistema!
+                    </p>
+                    <div className="bg-zinc-50 border border-zinc-200 rounded-lg p-4 mt-4 text-left text-xs space-y-1.5 text-zinc-600">
+                      <div><span className="font-semibold text-zinc-800">Nome:</span> {contactForm.name}</div>
+                      <div><span className="font-semibold text-zinc-800">CPF:</span> {contactForm.cpf}</div>
+                      <div><span className="font-semibold text-zinc-800">E-mail:</span> {contactForm.email}</div>
+                      <div><span className="font-semibold text-zinc-800">Contato:</span> {contactForm.phone}</div>
+                    </div>
+                    <p className="text-[11px] text-[#ec0000] font-bold pt-2 leading-relaxed">
+                      Nossa equipe de atendimento entrará em contato em instantes no número informado. Por favor, mantenha seu celular por perto!
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setIsContactModalOpen(false)}
+                    className="w-full bg-zinc-900 hover:bg-zinc-800 text-white py-3 rounded-lg text-xs font-bold uppercase tracking-wider cursor-pointer border-0"
+                  >
+                    Fechar e Voltar ao Site
+                  </button>
+                </div>
+              ) : (
+                // Form View
+                <form 
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    
+                    // Validation
+                    const errors: Record<string, string> = {};
+                    if (!contactForm.name.trim()) errors.name = "O nome é obrigatório";
+                    if (!contactForm.cpf.trim()) errors.cpf = "O CPF é obrigatório";
+                    else if (contactForm.cpf.replace(/\D/g, "").length < 11) errors.cpf = "Informe um CPF ou CNPJ válido";
+                    
+                    if (!contactForm.email.trim()) errors.email = "O e-mail é obrigatório";
+                    else if (!/\S+@\S+\.\S+/.test(contactForm.email)) errors.email = "E-mail inválido";
+                    
+                    if (!contactForm.phone.trim()) errors.phone = "O telefone é obrigatório";
+                    else if (contactForm.phone.replace(/\D/g, "").length < 10) errors.phone = "Informe um telefone válido";
+                    
+                    if (Object.keys(errors).length > 0) {
+                      setContactErrors(errors);
+                      return;
+                    }
+                    
+                    setContactErrors({});
+                    setIsSubmittingContact(true);
+                    
+                    // Simulate server submit delay
+                    setTimeout(() => {
+                      setIsSubmittingContact(false);
+                      setContactSubmitSuccess(true);
+                      setToast({
+                        message: "Formulário de atendimento enviado com sucesso!",
+                        type: "success"
+                      });
+                    }, 1000);
+                  }}
+                  className="p-6 space-y-4 text-left"
+                >
+                  {/* Name field */}
+                  <div className="space-y-1">
+                    <label className="block text-[10px] font-bold text-zinc-700 uppercase tracking-wide">Nome Completo</label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-2.5 w-4 h-4 text-zinc-400" />
+                      <input 
+                        type="text" 
+                        required
+                        placeholder="Nome completo do titular"
+                        value={contactForm.name}
+                        onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
+                        className={`w-full bg-zinc-50 border ${contactErrors.name ? "border-red-500 focus:ring-red-500" : "border-zinc-300 focus:ring-[#ec0000] focus:border-[#ec0000]"} rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-1 transition-colors`}
+                      />
+                    </div>
+                    {contactErrors.name && <p className="text-[10px] text-red-600 font-semibold">{contactErrors.name}</p>}
+                  </div>
+
+                  {/* CPF/CNPJ & Phone inline layout */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* CPF field */}
+                    <div className="space-y-1">
+                      <label className="block text-[10px] font-bold text-zinc-700 uppercase tracking-wide">CPF / CNPJ</label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-2.5 w-4 h-4 text-zinc-400" />
+                        <input 
+                          type="text" 
+                          required
+                          placeholder="000.000.000-00"
+                          value={contactForm.cpf}
+                          onChange={(e) => setContactForm({ ...contactForm, cpf: maskCpfCnpj(e.target.value) })}
+                          className={`w-full bg-zinc-50 border ${contactErrors.cpf ? "border-red-500 focus:ring-red-500" : "border-zinc-300 focus:ring-[#ec0000] focus:border-[#ec0000]"} rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-1 transition-colors`}
+                        />
+                      </div>
+                      {contactErrors.cpf && <p className="text-[10px] text-red-600 font-semibold">{contactErrors.cpf}</p>}
+                    </div>
+
+                    {/* Phone field */}
+                    <div className="space-y-1">
+                      <label className="block text-[10px] font-bold text-zinc-700 uppercase tracking-wide">Telefone / WhatsApp</label>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-2.5 w-4 h-4 text-zinc-400" />
+                        <input 
+                          type="text" 
+                          required
+                          placeholder="(11) 99999-9999"
+                          value={contactForm.phone}
+                          onChange={(e) => setContactForm({ ...contactForm, phone: maskPhone(e.target.value) })}
+                          className={`w-full bg-zinc-50 border ${contactErrors.phone ? "border-red-500 focus:ring-red-500" : "border-zinc-300 focus:ring-[#ec0000] focus:border-[#ec0000]"} rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-1 transition-colors`}
+                        />
+                      </div>
+                      {contactErrors.phone && <p className="text-[10px] text-red-600 font-semibold">{contactErrors.phone}</p>}
+                    </div>
+                  </div>
+
+                  {/* Email field */}
+                  <div className="space-y-1">
+                    <label className="block text-[10px] font-bold text-zinc-700 uppercase tracking-wide">E-mail de Contato</label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-2.5 w-4 h-4 text-zinc-400" />
+                      <input 
+                        type="email" 
+                        required
+                        placeholder="seuemail@exemplo.com"
+                        value={contactForm.email}
+                        onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
+                        className={`w-full bg-zinc-50 border ${contactErrors.email ? "border-red-500 focus:ring-red-500" : "border-zinc-300 focus:ring-[#ec0000] focus:border-[#ec0000]"} rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-1 transition-colors`}
+                      />
+                    </div>
+                    {contactErrors.email && <p className="text-[10px] text-red-600 font-semibold">{contactErrors.email}</p>}
+                  </div>
+
+                  {/* Subject field (dropdown) */}
+                  <div className="space-y-1">
+                    <label className="block text-[10px] font-bold text-zinc-700 uppercase tracking-wide">Assunto do Atendimento</label>
+                    <select 
+                      value={contactSubject}
+                      onChange={(e) => setContactSubject(e.target.value)}
+                      className="w-full bg-zinc-50 border border-zinc-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#ec0000] focus:border-[#ec0000] text-zinc-800 font-medium"
+                    >
+                      {CONTACT_SUBJECTS.map((sub, idx) => (
+                        <option key={idx} value={sub}>{sub}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Message (optional) */}
+                  <div className="space-y-1">
+                    <label className="block text-[10px] font-bold text-zinc-700 uppercase tracking-wide">Observações (Opcional)</label>
+                    <textarea 
+                      placeholder="Alguma observação ou detalhe para agilizar seu atendimento?"
+                      value={contactForm.message}
+                      onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
+                      rows={2}
+                      className="w-full bg-zinc-50 border border-zinc-300 rounded-lg p-3 text-sm focus:outline-none focus:ring-1 focus:ring-[#ec0000] focus:border-[#ec0000] text-zinc-800"
+                    />
+                  </div>
+
+                  {/* GDPR and terms security text */}
+                  <div className="bg-zinc-50 p-3 rounded-lg border border-zinc-100 text-[10px] text-zinc-500 leading-relaxed flex items-start gap-2 select-none">
+                    <Lock className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                    <span>Seus dados pessoais estão protegidos de acordo com a LGPD (Lei nº 13.709/2018). Usamos essas informações exclusivamente para validar e processar sua demanda de atendimento.</span>
+                  </div>
+
+                  {/* Submit Button */}
+                  <button 
+                    type="submit"
+                    disabled={isSubmittingContact}
+                    className="w-full bg-[#ec0000] hover:bg-[#cc0000] active:scale-[0.98] disabled:bg-zinc-400 text-white font-black py-3 rounded-lg text-xs uppercase tracking-wider shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer border-0"
+                  >
+                    {isSubmittingContact ? (
+                      <span className="flex items-center gap-2">
+                        <span className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent" />
+                        Validando cadastro...
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1.5">
+                        <Send className="w-4 h-4" /> Solicitar Atendimento Oficial
+                      </span>
+                    )}
+                  </button>
+                </form>
+              )}
             </motion.div>
           </motion.div>
         )}
