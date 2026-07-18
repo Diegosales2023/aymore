@@ -228,6 +228,7 @@ export default function App() {
   const [contactErrors, setContactErrors] = useState<Record<string, string>>({});
   const [isSubmittingContact, setIsSubmittingContact] = useState(false);
   const [contactSubmitSuccess, setContactSubmitSuccess] = useState(false);
+  const [contactSubmitError, setContactSubmitError] = useState<string | null>(null);
   const [supabaseStatus, setSupabaseStatus] = useState<{ configured: boolean; url: string | null; hasKey: boolean; isPlaceholder: boolean } | null>(null);
 
   const checkSupabaseStatus = async () => {
@@ -253,6 +254,7 @@ export default function App() {
     });
     setContactErrors({});
     setContactSubmitSuccess(false);
+    setContactSubmitError(null);
     setShowSqlHelper(false);
     setIsContactModalOpen(true);
     checkSupabaseStatus();
