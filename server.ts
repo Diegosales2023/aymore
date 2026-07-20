@@ -37,7 +37,7 @@ let supabaseClient: any = null;
 function getSupabase() {
   if (!supabaseClient) {
     const url = process.env.SUPABASE_URL || process.env.SUPASE_URL || "https://kpjkmegvfracwmqftntt.supabase.co";
-    const key = process.env.SUPABASE_ANONKEY || process.env.SUPASE_ANONKEY || "sb_secret_ZD_Ayd_vbCks2VutGLNkMw_gl5hrzlA";
+    const key = process.env.SUPABASE_ANONKEY || process.env.SUPASE_ANONKEY || process.env.SUPABASE_ANON_KEY || process.env.SUPASE_ANON_KEY || "sb_secret_ZD_Ayd_vbCks2VutGLNkMw_gl5hrzlA";
     if (!url || !key) {
       throw new Error("Supabase URL and Anon Key are required");
     }
@@ -55,7 +55,7 @@ async function startServer() {
   // API Route to check Supabase configuration status
   app.get("/api/supabase-status", (req, res) => {
     const url = process.env.SUPABASE_URL || process.env.SUPASE_URL;
-    const key = process.env.SUPABASE_ANONKEY || process.env.SUPASE_ANONKEY;
+    const key = process.env.SUPABASE_ANONKEY || process.env.SUPASE_ANONKEY || process.env.SUPABASE_ANON_KEY || process.env.SUPASE_ANON_KEY;
     
     const isConfigured = !!(url && key && url !== "https://kpjkmegvfracwmqftntt.supabase.co" && !key.startsWith("sb_secret_"));
     
