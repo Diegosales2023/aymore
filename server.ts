@@ -3,11 +3,33 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import { createClient } from "@supabase/supabase-js";
 import dotenv from "dotenv";
+import fs from "fs";
 
 // Load environment variables
 dotenv.config();
 
 const PORT = 3000;
+const BACKUP_FILE = path.join(process.cwd(), "leads_backup.json");
+
+// Helper function to save lead to a local file backup
+function saveLeadToLocalBackup(lead: any) {
+  try {
+    let leads = [];
+    if (fs.existsSync(BACKUP_FILE)) {
+      const fileContent = fs.readFileSync(BACKUP_FILE, "utf-8");
+      leads = JSON.parse(fileContent || "[]");
+    }
+    leads.unshift({
+      ...lead,
+      id: Date.now() + Math.random().toString(36).substring(2, 7),
+      created_at: lead.created_at || new Date().toISOString()
+    });
+    fs.writeFileSync(BACKUP_FILE, JSON.stringify(leads, null, 2), "utf-8");
+    console.log("[Backup Local] Lead salvo com sucesso no arquivo local de segurança!");
+  } catch (err) {
+    console.error("[Backup Local Error] Erro ao salvar lead localmente:", err);
+  }
+}
 
 // Lazy-loaded Supabase client
 let supabaseClient: any = null;
@@ -45,6 +67,31 @@ async function startServer() {
     });
   });
 
+  // API Route to fetch all local backup leads
+  app.get("/api/contacts", (req, res) => {
+    try {
+      let leads = [];
+      if (fs.existsSync(BACKUP_FILE)) {
+        const fileContent = fs.readFileSync(BACKUP_FILE, "utf-8");
+        leads = JSON.parse(fileContent || "[]");
+      }
+      return res.json({ success: true, count: leads.length, data: leads });
+    } catch (err: any) {
+      console.error("[Backup Error] Failed to read local backup:", err);
+      return res.status(500).json({ error: "Erro ao ler leads locais", details: err.message });
+    }
+  });
+
+  // API Route to clear leads backup history
+  app.post("/api/contacts/clear", (req, res) => {
+    try {
+      fs.writeFileSync(BACKUP_FILE, "[]", "utf-8");
+      return res.json({ success: true, message: "Histórico de leads limpo com sucesso." });
+    } catch (err: any) {
+      return res.status(500).json({ error: "Erro ao limpar leads", details: err.message });
+    }
+  });
+
   // API Route to submit lead data to Supabase
   app.post("/api/contact", async (req, res) => {
     try {
@@ -54,11 +101,24 @@ async function startServer() {
         return res.status(400).json({ error: "Campos obrigatórios ausentes" });
       }
 
+      // Prepare and save to local backup file first to prevent any data loss
+      const localLead = {
+        name,
+        cpf,
+        email,
+        phone,
+        subject: subject || "Atendimento Geral",
+        message: message || "",
+        created_at: new Date().toISOString()
+      };
+      saveLeadToLocalBackup(localLead);
+
       const supabase = getSupabase();
       
       const tableNames = ["contatos", "leads", "contato", "lead", "clientes", "leads_site", "contatos_site"];
       
       let existingTableError: any = null;
+      let preferredTableError: any = null;
       let lastError: any = null;
       let successData = null;
       let usedTable = "";
@@ -131,6 +191,9 @@ async function startServer() {
             // Check if this is a table not found error
             if (isTableNotFoundError(error)) {
               lastError = error;
+              if (tableName === "contatos") {
+                preferredTableError = error;
+              }
               // Table doesn't exist, skip to the next table/payload
               break;
             }
@@ -183,7 +246,7 @@ async function startServer() {
             }
           }
 
-          if (successData || tableExists) break;
+          if (successData) break;
         }
 
         // If the table exists but failed (e.g., due to RLS), we stop the search here so we don't report confusing errors from subsequent non-existent tables!
@@ -191,34 +254,38 @@ async function startServer() {
       }
 
       if (!successData) {
-        const finalError = existingTableError || lastError;
-        console.error("Todas as estratégias de inserção no Supabase falharam:", finalError);
+        const finalError = existingTableError || preferredTableError || lastError;
+        console.error("Todas as estratégias de inserção no Supabase falharam, usando fallback local:", finalError);
         
         let customMessage = "Erro ao salvar no banco de dados Supabase.";
         let customHint = "";
 
         if (finalError) {
           const errMsg = (finalError.message || "").toLowerCase();
+          const errCode = finalError.code || "";
           
-          if (finalError.hint) {
+          if (errMsg.includes("schema cache") || errMsg.includes("could not find the table")) {
+            customMessage = `A tabela 'contatos' não foi encontrada no cache de esquemas do seu Supabase.`;
+            customHint = `Para resolver isso e fazer o Supabase reconhecer a tabela imediatamente:\n\n1. Acesse o painel do seu Supabase.\n2. Vá em "SQL Editor" (no menu lateral esquerdo).\n3. Crie uma "New Query", cole o comando abaixo e clique em RUN:\n\nNOTIFY pgrst, 'reload schema';\n\nIsso força a API do Supabase a atualizar e reconhecer as tabelas novas na hora! Se você ainda não criou a tabela, use o botão "Configuração SQL" no topo direito deste modal para copiar o script completo de criação.`;
+          } else if ((errMsg.includes("relation") && errMsg.includes("does not exist")) || errCode === "42P01") {
+            customMessage = `A tabela 'contatos' não foi encontrada no seu Supabase.`;
+            customHint = `Crie a tabela no seu painel do Supabase. Para fazer isso de forma simples:\n\n1. Clique no botão "Configuração SQL" no topo direito deste modal e copie o código.\n2. Acesse o painel do seu Supabase > "SQL Editor" > cole o código e clique em RUN.\n3. Isso criará a tabela e desativará as restrições de segurança (RLS) para permitir envios do formulário.`;
+          } else if (errMsg.includes("row-level security") || errMsg.includes("rls") || errCode === "42501") {
+            customMessage = `Acesso negado por políticas de segurança (RLS) no Supabase.`;
+            customHint = `A tabela existe, mas o Supabase bloqueou a inserção pública de dados por segurança. Para resolver isso, acesse o painel do Supabase, abra o "SQL Editor", cole e execute:\n\nALTER TABLE public.contatos DISABLE ROW LEVEL SECURITY;`;
+          } else if (finalError.hint) {
             customMessage = finalError.message;
             customHint = finalError.hint;
-          } else if (errMsg.includes("schema cache") || errMsg.includes("could not find the table")) {
-            customMessage = `Tabela não encontrada no cache de esquemas do Supabase.`;
-            customHint = `Se você acabou de criar a tabela 'contatos' no Supabase, a API dele pode demorar até 1 minuto para recarregar o cache de esquemas. Tente atualizar a página do painel do seu Supabase ou rodar uma query simples no SQL Editor para forçar a atualização da API.`;
-          } else if (errMsg.includes("relation") && errMsg.includes("does not exist") || finalError.code === "42P01") {
-            customMessage = `A tabela não foi encontrada no seu Supabase.`;
-            customHint = `Crie uma tabela chamada 'contatos' no seu painel do Supabase. Você pode copiar o script SQL disponível clicando no botão "Configuração SQL" no topo direito deste modal e executando-o no SQL Editor do Supabase.`;
-          } else if (errMsg.includes("row-level security") || errMsg.includes("rls") || finalError.code === "42501") {
-            customMessage = `Acesso negado por políticas de segurança (RLS) no Supabase.`;
-            customHint = `A tabela existe, mas o Supabase bloqueou a inserção pública de dados por segurança. Para resolver isso, acesse o painel do Supabase, abra o "SQL Editor", cole e execute: ALTER TABLE public.contatos DISABLE ROW LEVEL SECURITY;`;
           } else {
             customMessage = `Erro do banco: ${finalError.message}`;
             customHint = `Verifique se as colunas criadas na tabela 'contatos' têm exatamente os mesmos nomes (id, name, cpf, email, phone, subject, message, created_at) e os tipos corretos.`;
           }
         }
 
-        return res.status(500).json({ 
+        // Return a successful 200 OK response indicating successful backup save to keep the landing page fully functional!
+        return res.json({ 
+          success: true, 
+          savedLocally: true,
           error: customMessage, 
           details: finalError ? finalError.message : "Erro desconhecido",
           hint: customHint || (finalError ? finalError.hint : undefined)

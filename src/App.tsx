@@ -30,6 +30,9 @@ import {
   ExternalLink,
   ShieldAlert,
   ArrowRight,
+  Download,
+  Trash2,
+  RefreshCw,
   X
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
@@ -230,6 +233,10 @@ export default function App() {
   const [contactSubmitSuccess, setContactSubmitSuccess] = useState(false);
   const [contactSubmitError, setContactSubmitError] = useState<string | null>(null);
   const [contactSubmitHint, setContactSubmitHint] = useState<string | null>(null);
+  const [isSavedLocally, setIsSavedLocally] = useState(false);
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [adminLeads, setAdminLeads] = useState<any[]>([]);
+  const [isLoadingLeads, setIsLoadingLeads] = useState(false);
   const [supabaseStatus, setSupabaseStatus] = useState<{ configured: boolean; url: string | null; hasKey: boolean; isPlaceholder: boolean } | null>(null);
 
   const checkSupabaseStatus = async () => {
@@ -261,6 +268,79 @@ export default function App() {
     setIsContactModalOpen(true);
     checkSupabaseStatus();
   };
+
+  const fetchBackupLeads = async () => {
+    setIsLoadingLeads(true);
+    try {
+      const res = await fetch("/api/contacts");
+      if (res.ok) {
+        const data = await res.json();
+        setAdminLeads(data.data || []);
+      } else {
+        setToast({ message: "Erro ao carregar leads locais", type: "warning" });
+      }
+    } catch (e: any) {
+      setToast({ message: `Erro de conexão: ${e.message}`, type: "warning" });
+    } finally {
+      setIsLoadingLeads(false);
+    }
+  };
+
+  const clearBackupLeads = async () => {
+    if (!window.confirm("Deseja realmente limpar permanentemente todo o histórico de leads do backup local?")) {
+      return;
+    }
+    try {
+      const res = await fetch("/api/contacts/clear", { method: "POST" });
+      if (res.ok) {
+        setAdminLeads([]);
+        setToast({ message: "Histórico de leads limpo com sucesso!", type: "success" });
+      } else {
+        setToast({ message: "Erro ao limpar histórico", type: "warning" });
+      }
+    } catch (e: any) {
+      setToast({ message: `Erro de conexão: ${e.message}`, type: "warning" });
+    }
+  };
+
+  const exportLeadsToCsv = () => {
+    if (adminLeads.length === 0) {
+      setToast({ message: "Não há leads para exportar", type: "info" });
+      return;
+    }
+    
+    const headers = ["Data/Hora", "Nome", "CPF", "E-mail", "Telefone", "Assunto", "Mensagem"];
+    const rows = adminLeads.map(lead => [
+      new Date(lead.created_at).toLocaleString("pt-BR"),
+      lead.name || lead.nome || "",
+      lead.cpf || "",
+      lead.email || "",
+      lead.phone || lead.telefone || "",
+      lead.subject || lead.assunto || "",
+      (lead.message || lead.mensagem || "").replace(/\n/g, " ")
+    ]);
+    
+    const csvContent = "\uFEFF" + [
+      headers.join(";"),
+      ...rows.map(row => row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(";"))
+    ].join("\n");
+    
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `leads_aymore_financiamentos_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setToast({ message: "Leads exportados para CSV com sucesso!", type: "success" });
+  };
+
+  useEffect(() => {
+    if (isAdminOpen) {
+      fetchBackupLeads();
+    }
+  }, [isAdminOpen]);
 
   // Auto-dismiss toasts
   useEffect(() => {
@@ -1260,9 +1340,20 @@ export default function App() {
           {/* FINAL BOTTOM LINE */}
           <div className="border-t border-zinc-900 pt-6 flex flex-col sm:flex-row justify-between items-center text-[10px] text-zinc-600 gap-4">
             <span>© 2026 Aymoré Financiamentos. Todos os direitos reservados. Grupo Santander Brasil.</span>
-            <div className="flex gap-4">
+            <div className="flex gap-4 items-center">
               <span className="cursor-pointer hover:text-white">Políticas de Privacidade</span>
+              <span className="text-zinc-800">|</span>
               <span className="cursor-pointer hover:text-white">Termos de Uso do Portal</span>
+              <span className="text-zinc-800">|</span>
+              <button 
+                type="button"
+                onClick={() => setIsAdminOpen(true)}
+                className="bg-transparent border-0 p-0 text-zinc-500 hover:text-red-500 font-semibold cursor-pointer flex items-center gap-1 transition-colors"
+                title="Área exclusiva do proprietário do site para gerenciar leads recebidos"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                Painel de Leads
+              </button>
             </div>
           </div>
 
@@ -1525,6 +1616,200 @@ export default function App() {
         )}
       </AnimatePresence>
 
+      {/* ----------------- MODAL: ADMIN LEADS PANEL ----------------- */}
+      <AnimatePresence>
+        {isAdminOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 z-50 overflow-y-auto flex items-center justify-center p-4 backdrop-blur-xs font-sans"
+          >
+            <motion.div 
+              initial={{ scale: 0.95, y: 15 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 15 }}
+              className="bg-zinc-950 text-zinc-100 rounded-xl max-w-4xl w-full overflow-hidden shadow-2xl relative border border-zinc-800 flex flex-col max-h-[90vh]"
+            >
+              {/* Header */}
+              <div className="bg-zinc-900 border-b border-zinc-800 p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                  <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Painel de Controle de Leads
+                  </h3>
+                  <p className="text-xs text-zinc-400">Gerenciamento offline-first e monitoramento do Supabase</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={exportLeadsToCsv}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2 px-3 rounded-lg flex items-center gap-1.5 border-0 cursor-pointer transition-colors"
+                  >
+                    <Download className="w-3.5 h-3.5" /> Exportar CSV
+                  </button>
+                  <button
+                    type="button"
+                    onClick={fetchBackupLeads}
+                    className="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold py-2 px-3 rounded-lg flex items-center gap-1.5 border-0 cursor-pointer transition-colors"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${isLoadingLeads ? "animate-spin" : ""}`} /> Atualizar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={clearBackupLeads}
+                    className="bg-red-950/40 hover:bg-red-900/60 text-red-400 text-xs font-bold py-2 px-3 rounded-lg flex items-center gap-1.5 border-0 cursor-pointer transition-colors"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" /> Limpar Tudo
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsAdminOpen(false)}
+                    className="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 p-2 rounded-lg border-0 cursor-pointer transition-colors"
+                    title="Fechar Painel"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Database sync status widget */}
+              <div className="bg-zinc-900/50 px-6 py-3 border-b border-zinc-800/60 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="text-zinc-400">Banco de Dados Supabase:</span>
+                  {supabaseStatus?.configured ? (
+                    <span className="bg-emerald-950 text-emerald-400 border border-emerald-900/50 px-2 py-0.5 rounded text-[10px] font-bold">✓ CONECTADO</span>
+                  ) : (
+                    <span className="bg-amber-950 text-amber-400 border border-amber-900/50 px-2 py-0.5 rounded text-[10px] font-bold">⚠ MODO BACKUP LOCAL ATIVO</span>
+                  )}
+                </div>
+                <div className="text-[11px] text-zinc-400 leading-normal max-w-xl text-left">
+                  {supabaseStatus?.configured 
+                    ? "Os leads estão sendo sincronizados com seu Supabase. Caso haja atraso de cache de esquemas, use a instrução SQL Helper no formulário de contato." 
+                    : "Os leads estão salvos em segurança no servidor. Configure SUPABASE_URL e SUPABASE_ANONKEY no seu .env para ativar a gravação em nuvem."}
+                </div>
+              </div>
+
+              {/* Leads list or empty state */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-4 min-h-[300px]">
+                {isLoadingLeads ? (
+                  <div className="flex flex-col items-center justify-center py-16 space-y-3">
+                    <RefreshCw className="w-8 h-8 text-red-500 animate-spin" />
+                    <p className="text-sm text-zinc-400">Buscando leads no servidor local...</p>
+                  </div>
+                ) : adminLeads.length === 0 ? (
+                  <div className="text-center py-16 border-2 border-dashed border-zinc-800 rounded-xl space-y-4">
+                    <div className="w-12 h-12 rounded-full bg-zinc-900 flex items-center justify-center mx-auto text-zinc-500">
+                      <User className="w-6 h-6" />
+                    </div>
+                    <div className="space-y-1">
+                      <h4 className="font-bold text-white text-sm">Nenhum lead recebido ainda</h4>
+                      <p className="text-xs text-zinc-400 max-w-xs mx-auto leading-relaxed">
+                        Os leads preenchidos no formulário de simulação ou contato aparecerão aqui instantaneamente.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center text-xs text-zinc-500 pb-1">
+                      <span>Mostrando {adminLeads.length} lead(s) recebidos</span>
+                      <span>Backup local garantido</span>
+                    </div>
+                    <div className="grid grid-cols-1 gap-3">
+                      {adminLeads.map((lead, index) => {
+                        const nameVal = lead.name || lead.nome || "Não informado";
+                        const cpfVal = lead.cpf || "Não informado";
+                        const emailVal = lead.email || "Não informado";
+                        const phoneVal = lead.phone || lead.telefone || "Não informado";
+                        const subjectVal = lead.subject || lead.assunto || "Geral";
+                        const msgVal = lead.message || lead.mensagem || "";
+                        const dateVal = new Date(lead.created_at).toLocaleString("pt-BR");
+
+                        return (
+                          <div 
+                            key={lead.id || index}
+                            className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 space-y-3 hover:border-zinc-700 transition-colors text-left"
+                          >
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-zinc-800/50 pb-2.5">
+                              <div className="space-y-0.5">
+                                <h4 className="font-bold text-white text-sm flex items-center gap-2">
+                                  {nameVal}
+                                  <span className="text-[10px] bg-red-950/60 text-red-400 font-bold px-2 py-0.5 rounded border border-red-900/30">
+                                    {subjectVal}
+                                  </span>
+                                </h4>
+                                <p className="text-xs text-zinc-400 font-mono">CPF: {cpfVal}</p>
+                              </div>
+                              <span className="text-[10px] text-zinc-500 font-mono shrink-0">
+                                {dateVal}
+                              </span>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-zinc-300">
+                              <div className="flex items-center gap-1.5 p-1.5 bg-zinc-950/40 rounded border border-zinc-850">
+                                <Mail className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
+                                <span className="truncate select-all" title="Clique duas vezes para selecionar">{emailVal}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(emailVal);
+                                    setToast({ message: "E-mail copiado!", type: "success" });
+                                  }}
+                                  className="ml-auto bg-transparent border-0 text-zinc-500 hover:text-white cursor-pointer p-0.5"
+                                  title="Copiar e-mail"
+                                >
+                                  <Copy className="w-3 h-3" />
+                                </button>
+                              </div>
+                              <div className="flex items-center gap-1.5 p-1.5 bg-zinc-950/40 rounded border border-zinc-850">
+                                <Phone className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
+                                <span className="truncate select-all" title="Clique duas vezes para selecionar">{phoneVal}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(phoneVal);
+                                    setToast({ message: "Telefone copiado!", type: "success" });
+                                  }}
+                                  className="ml-auto bg-transparent border-0 text-zinc-500 hover:text-white cursor-pointer p-0.5"
+                                  title="Copiar telefone"
+                                >
+                                  <Copy className="w-3 h-3" />
+                                </button>
+                              </div>
+                            </div>
+
+                            {msgVal && (
+                              <div className="bg-zinc-950/60 p-3 rounded-lg border border-zinc-850 space-y-1">
+                                <span className="block text-[10px] uppercase font-bold text-zinc-500">Mensagem:</span>
+                                <p className="text-xs text-zinc-300 whitespace-pre-wrap break-words leading-relaxed">
+                                  {msgVal}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="bg-zinc-900 border-t border-zinc-800 p-4 text-center">
+                <button
+                  type="button"
+                  onClick={() => setIsAdminOpen(false)}
+                  className="bg-zinc-800 hover:bg-zinc-750 text-white font-bold text-xs uppercase tracking-wider py-2.5 px-6 rounded-lg cursor-pointer border-0 transition-colors"
+                >
+                  Fechar Painel
+                </button>
+              </div>
+
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* ----------------- MODAL: CONTACT FORM DIALOG ----------------- */}
       <AnimatePresence>
         {isContactModalOpen && (
@@ -1580,7 +1865,7 @@ export default function App() {
 
                   <div className="relative">
                     <pre className="bg-zinc-900 text-zinc-100 text-[10px] p-3 rounded-lg overflow-x-auto font-mono max-h-56 select-all whitespace-pre leading-relaxed">
-{`-- Criar tabela de contatos
+{`-- 1. Criar tabela de contatos
 CREATE TABLE IF NOT EXISTS public.contatos (
     id bigint GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
     name text NOT NULL,
@@ -1592,8 +1877,11 @@ CREATE TABLE IF NOT EXISTS public.contatos (
     created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- Desativar RLS (Segurança de Linha) para permitir inserções do site
-ALTER TABLE public.contatos DISABLE ROW LEVEL SECURITY;`}
+-- 2. Desativar RLS (Segurança de Linha) para permitir inserções do site
+ALTER TABLE public.contatos DISABLE ROW LEVEL SECURITY;
+
+-- 3. Forçar recarregamento do cache de esquemas da API Supabase (Corrige erro "Could not find table in schema cache")
+NOTIFY pgrst, 'reload schema';`}
                     </pre>
                     <button
                       type="button"
@@ -1610,7 +1898,9 @@ ALTER TABLE public.contatos DISABLE ROW LEVEL SECURITY;`}
     created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
-ALTER TABLE public.contatos DISABLE ROW LEVEL SECURITY;`,
+ALTER TABLE public.contatos DISABLE ROW LEVEL SECURITY;
+
+NOTIFY pgrst, 'reload schema';`,
                           "Código SQL"
                         );
                       }}
@@ -1652,6 +1942,30 @@ ALTER TABLE public.contatos DISABLE ROW LEVEL SECURITY;`,
                       <div><span className="font-semibold text-zinc-800">E-mail:</span> {contactForm.email}</div>
                       <div><span className="font-semibold text-zinc-800">Contato:</span> {contactForm.phone}</div>
                     </div>
+
+                    {isSavedLocally && (
+                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-3.5 text-left space-y-1.5 text-[11px] text-amber-900 mt-3">
+                        <p className="font-bold flex items-center gap-1">📌 Sincronização Local Ativa:</p>
+                        <p className="leading-relaxed text-[10.5px]">
+                          Este lead foi gravado com sucesso no <strong>backup de segurança do servidor local</strong>! Ele não foi enviado ao seu Supabase devido a um erro de cache de esquemas ou tabela ausente.
+                        </p>
+                        {contactSubmitError && (
+                          <div className="bg-white/80 p-2 rounded font-mono text-[9.5px] text-amber-950 overflow-x-auto leading-tight border border-amber-200">
+                            <strong>Erro:</strong> {contactSubmitError}
+                          </div>
+                        )}
+                        <div className="pt-1">
+                          <button
+                            type="button"
+                            onClick={() => setShowSqlHelper(true)}
+                            className="w-full bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-bold py-1.5 px-2 rounded border-0 cursor-pointer uppercase tracking-wider transition-colors"
+                          >
+                            Ver Como Resolver no Supabase
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
                     <p className="text-[11px] text-[#ec0000] font-bold pt-2 leading-relaxed">
                       Nossa equipe de atendimento entrará em contato em instantes no número informado. Por favor, mantenha seu celular por perto!
                     </p>
@@ -1719,10 +2033,26 @@ ALTER TABLE public.contatos DISABLE ROW LEVEL SECURITY;`,
                       
                       setIsSubmittingContact(false);
                       setContactSubmitSuccess(true);
-                      setToast({
-                        message: "Formulário enviado e salvo no Supabase com sucesso!",
-                        type: "success"
-                      });
+                      
+                      if (result.savedLocally) {
+                        setIsSavedLocally(true);
+                        if (result.error) {
+                          setContactSubmitError(result.error);
+                        }
+                        if (result.hint) {
+                          setContactSubmitHint(result.hint);
+                        }
+                        setToast({
+                          message: "Formulário enviado com sucesso (Salvo no Servidor Local)!",
+                          type: "success"
+                        });
+                      } else {
+                        setIsSavedLocally(false);
+                        setToast({
+                          message: "Formulário enviado e salvo no Supabase com sucesso!",
+                          type: "success"
+                        });
+                      }
                     } catch (error: any) {
                       console.error("Erro ao enviar formulário:", error);
                       setIsSubmittingContact(false);
