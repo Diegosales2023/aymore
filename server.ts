@@ -9,7 +9,15 @@ import nodemailer from "nodemailer";
 dotenv.config();
 
 const PORT = 3000;
-const BACKUP_FILE = path.join(process.cwd(), "leads_backup.json");
+let BACKUP_FILE = path.join(process.cwd(), "leads_backup.json");
+
+// Ensure the backup file is writable, otherwise fallback to /tmp
+try {
+  fs.writeFileSync(BACKUP_FILE, "", { flag: "a" });
+} catch (e) {
+  console.warn("[Backup Local] Diretório atual não é gravável, alterando o backup para /tmp/leads_backup.json");
+  BACKUP_FILE = path.join("/tmp", "leads_backup.json");
+}
 
 // Helper function to save lead to a local file backup
 function saveLeadToLocalBackup(lead: any) {
@@ -17,7 +25,15 @@ function saveLeadToLocalBackup(lead: any) {
     let leads = [];
     if (fs.existsSync(BACKUP_FILE)) {
       const fileContent = fs.readFileSync(BACKUP_FILE, "utf-8");
-      leads = JSON.parse(fileContent || "[]");
+      try {
+        leads = JSON.parse(fileContent || "[]");
+        if (!Array.isArray(leads)) {
+          leads = [];
+        }
+      } catch (parseErr) {
+        console.warn("[Backup Local] Arquivo de backup inválido, resetando...", parseErr);
+        leads = [];
+      }
     }
     leads.unshift({
       ...lead,
@@ -147,7 +163,14 @@ async function startServer() {
       let leads = [];
       if (fs.existsSync(BACKUP_FILE)) {
         const fileContent = fs.readFileSync(BACKUP_FILE, "utf-8");
-        leads = JSON.parse(fileContent || "[]");
+        try {
+          leads = JSON.parse(fileContent || "[]");
+          if (!Array.isArray(leads)) {
+            leads = [];
+          }
+        } catch (e) {
+          leads = [];
+        }
       }
       return res.json({ success: true, count: leads.length, data: leads });
     } catch (err: any) {

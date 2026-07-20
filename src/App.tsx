@@ -2082,7 +2082,17 @@ NOTIFY pgrst, 'reload schema';`,
                         })
                       });
                       
-                      const result = await response.json();
+                      const responseText = await response.text();
+                      let result: any = {};
+                      try {
+                        result = responseText ? JSON.parse(responseText) : {};
+                      } catch (e) {
+                        console.error("Erro ao converter resposta para JSON:", responseText, e);
+                        result = {
+                          error: `Resposta inesperada do servidor (Código ${response.status})`,
+                          details: responseText ? responseText.substring(0, 200) : "Nenhum conteúdo retornado."
+                        };
+                      }
                       
                       if (result.emailStatus) {
                         setEmailStatus(result.emailStatus);
@@ -2094,7 +2104,7 @@ NOTIFY pgrst, 'reload schema';`,
                         }
                         const errorMsg = result.details 
                           ? `${result.error} [Detalhes: ${result.details}]` 
-                          : (result.error || "Erro ao salvar no servidor");
+                          : (result.error || `Erro de comunicação com o servidor (Status: ${response.status})`);
                         throw new Error(errorMsg);
                       }
                       
