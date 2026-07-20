@@ -1,7 +1,6 @@
 import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
-import { createClient } from "@supabase/supabase-js";
 import dotenv from "dotenv";
 import fs from "fs";
 import nodemailer from "nodemailer";
@@ -130,35 +129,15 @@ async function sendLeadEmail(lead: any) {
   return { sent: mailSent, message: mailResultMsg };
 }
 
-// Lazy-loaded Supabase client
-let supabaseClient: any = null;
-
-function getSupabase() {
-  if (!supabaseClient) {
-    const url = process.env.SUPABASE_URL || process.env.SUPASE_URL || "https://kpjkmegvfracwmqftntt.supabase.co";
-    const key = process.env.SUPABASE_ANONKEY || process.env.SUPASE_ANONKEY || process.env.SUPABASE_ANON_KEY || process.env.SUPASE_ANON_KEY || "sb_secret_ZD_Ayd_vbCks2VutGLNkMw_gl5hrzlA";
-    if (!url || !key) {
-      throw new Error("Supabase URL and Anon Key are required");
-    }
-    // Clean the URL if it ends with /rest/v1/ or /rest/v1
-    const cleanUrl = url.replace(/\/rest\/v1\/?$/, "");
-    supabaseClient = createClient(cleanUrl, key);
-  }
-  return supabaseClient;
-}
-
+// Lazy-loaded status setup
 async function startServer() {
   const app = express();
   app.use(express.json());
 
-  // API Route to check Supabase configuration status (Disabled by user request)
+  // API Route to check status (Supabase is completely disabled)
   app.get("/api/supabase-status", (req, res) => {
     return res.json({
-      configured: false,
-      disabled: true,
-      url: null,
-      hasKey: false,
-      isPlaceholder: true
+      disabled: true
     });
   });
 

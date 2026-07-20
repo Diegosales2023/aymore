@@ -238,18 +238,10 @@ export default function App() {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [adminLeads, setAdminLeads] = useState<any[]>([]);
   const [isLoadingLeads, setIsLoadingLeads] = useState(false);
-  const [supabaseStatus, setSupabaseStatus] = useState<{ configured: boolean; url: string | null; hasKey: boolean; isPlaceholder: boolean } | null>(null);
+  const [supabaseStatus, setSupabaseStatus] = useState<any>({ disabled: true });
 
-  const checkSupabaseStatus = async () => {
-    try {
-      const res = await fetch("/api/supabase-status");
-      if (res.ok) {
-        const data = await res.json();
-        setSupabaseStatus(data);
-      }
-    } catch (e) {
-      console.warn("Failed to fetch supabase status", e);
-    }
+  const checkSupabaseStatus = () => {
+    setSupabaseStatus({ disabled: true });
   };
 
   const openContactForm = (subject: string) => {
