@@ -138,6 +138,19 @@ function getPathnameFromTab(tab: ActiveTab): string {
   return tabPathMap[tab] || "/";
 }
 
+// Helper function to resolve dynamic API URL when hosted on a third-party domain (like Vercel)
+const getApiUrl = (path: string): string => {
+  const hostname = window.location.hostname;
+  if (
+    hostname === "localhost" || 
+    hostname === "127.0.0.1" || 
+    hostname.endsWith(".run.app")
+  ) {
+    return path;
+  }
+  return `https://ais-pre-5qtlktgr6euwd24sofeefo-82296584552.us-east1.run.app${path}`;
+};
+
 export default function App() {
   // Navigation & Data State
   const [activeTab, setActiveTab] = useState<ActiveTab>(() => getTabFromPathname(window.location.pathname));
@@ -266,7 +279,7 @@ export default function App() {
   const fetchBackupLeads = async () => {
     setIsLoadingLeads(true);
     try {
-      const res = await fetch("/api/contacts");
+      const res = await fetch(getApiUrl("/api/contacts"));
       if (res.ok) {
         const data = await res.json();
         setAdminLeads(data.data || []);
@@ -285,7 +298,7 @@ export default function App() {
       return;
     }
     try {
-      const res = await fetch("/api/contacts/clear", { method: "POST" });
+      const res = await fetch(getApiUrl("/api/contacts/clear"), { method: "POST" });
       if (res.ok) {
         setAdminLeads([]);
         setToast({ message: "Histórico de leads limpo com sucesso!", type: "success" });
@@ -2069,7 +2082,7 @@ NOTIFY pgrst, 'reload schema';`,
                     setContactSubmitHint(null);
                     
                     try {
-                      const response = await fetch("/api/contact", {
+                      const response = await fetch(getApiUrl("/api/contact"), {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
