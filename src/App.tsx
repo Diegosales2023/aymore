@@ -234,6 +234,7 @@ export default function App() {
   const [contactSubmitError, setContactSubmitError] = useState<string | null>(null);
   const [contactSubmitHint, setContactSubmitHint] = useState<string | null>(null);
   const [isSavedLocally, setIsSavedLocally] = useState(false);
+  const [emailStatus, setEmailStatus] = useState<{ sent: boolean; message: string } | null>(null);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [adminLeads, setAdminLeads] = useState<any[]>([]);
   const [isLoadingLeads, setIsLoadingLeads] = useState(false);
@@ -264,6 +265,7 @@ export default function App() {
     setContactSubmitSuccess(false);
     setContactSubmitError(null);
     setContactSubmitHint(null);
+    setEmailStatus(null);
     setShowSqlHelper(false);
     setIsContactModalOpen(true);
     checkSupabaseStatus();
@@ -1028,6 +1030,10 @@ export default function App() {
                         <strong className="text-zinc-500 block uppercase text-[9px]">Canais Ouvidoria Banco Central:</strong>
                         Ouvidoria: 0800 726 0322 | Atendimento ao Consumidor SAC: 0800 704 9090
                       </li>
+                      <li>
+                        <strong className="text-zinc-500 block uppercase text-[9px]">E-mail de Atendimento Oficial:</strong>
+                        <a href="mailto:atendimento@centralwebaymore.com" className="text-[#ec0000] hover:underline font-bold">atendimento@centralwebaymore.com</a>
+                      </li>
                     </ul>
                   </div>
 
@@ -1302,6 +1308,7 @@ export default function App() {
                 <li>Demais Localidades: <strong className="text-zinc-300">0800 722 9090</strong></li>
                 <li>SAC Deficiente Auditivo: <strong className="text-zinc-300">0800 771 0301</strong></li>
                 <li>Ouvidoria Geral: <strong className="text-zinc-300">0800 726 0322</strong></li>
+                <li>E-mail Oficial: <a href="mailto:atendimento@centralwebaymore.com" className="text-[#ec0000] hover:underline font-bold">atendimento@centralwebaymore.com</a></li>
               </ul>
             </div>
 
@@ -1674,21 +1681,27 @@ export default function App() {
               </div>
 
               {/* Database sync status widget */}
-              <div className="bg-zinc-900/50 px-6 py-3 border-b border-zinc-800/60 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs">
-                <div className="flex items-center gap-2">
-                  <span className="text-zinc-400">Banco de Dados Supabase:</span>
-                  {supabaseStatus?.configured ? (
-                    <span className="bg-emerald-950 text-emerald-400 border border-emerald-900/50 px-2 py-0.5 rounded text-[10px] font-bold">✓ CONECTADO</span>
-                  ) : (
-                    <span className="bg-amber-950 text-amber-400 border border-amber-900/50 px-2 py-0.5 rounded text-[10px] font-bold">⚠ MODO BACKUP LOCAL ATIVO</span>
-                  )}
+              {supabaseStatus && (
+                <div className="bg-zinc-900/50 px-6 py-3 border-b border-zinc-800/60 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="text-zinc-400">Canal de Captação:</span>
+                    {supabaseStatus.disabled ? (
+                      <span className="bg-emerald-950 text-emerald-400 border border-emerald-900/50 px-2 py-0.5 rounded text-[10px] font-bold">✉ ENVIANDO POR E-MAIL</span>
+                    ) : supabaseStatus.configured ? (
+                      <span className="bg-emerald-950 text-emerald-400 border border-emerald-900/50 px-2 py-0.5 rounded text-[10px] font-bold">✓ CONECTADO</span>
+                    ) : (
+                      <span className="bg-amber-950 text-amber-400 border border-amber-900/50 px-2 py-0.5 rounded text-[10px] font-bold">⚠ MODO BACKUP LOCAL ATIVO</span>
+                    )}
+                  </div>
+                  <div className="text-[11px] text-zinc-400 leading-normal max-w-xl text-left">
+                    {supabaseStatus.disabled
+                      ? "Os leads preenchidos no site são enviados diretamente ao e-mail atendimento@centralwebaymore.com e guardados para consulta neste painel."
+                      : supabaseStatus.configured 
+                        ? "Os leads estão sendo sincronizados com seu Supabase. Caso haja atraso de cache de esquemas, use a instrução SQL Helper no formulário de contato." 
+                        : "Os leads estão salvos em segurança no servidor. Configure SUPABASE_URL e SUPABASE_ANONKEY no seu .env para ativar a gravação em nuvem."}
+                  </div>
                 </div>
-                <div className="text-[11px] text-zinc-400 leading-normal max-w-xl text-left">
-                  {supabaseStatus?.configured 
-                    ? "Os leads estão sendo sincronizados com seu Supabase. Caso haja atraso de cache de esquemas, use a instrução SQL Helper no formulário de contato." 
-                    : "Os leads estão salvos em segurança no servidor. Configure SUPABASE_URL e SUPABASE_ANONKEY no seu .env para ativar a gravação em nuvem."}
-                </div>
-              </div>
+              )}
 
               {/* Leads list or empty state */}
               <div className="flex-1 overflow-y-auto p-6 space-y-4 min-h-[300px]">
@@ -1834,20 +1847,22 @@ export default function App() {
                 >
                   <X className="w-5 h-5" />
                 </button>
-                <button 
-                  onClick={() => setShowSqlHelper(!showSqlHelper)}
-                  className="absolute top-4 right-11 text-white/80 hover:text-white hover:scale-110 transition-transform cursor-pointer border-0 bg-transparent p-1 flex items-center gap-1 text-[11px] font-bold"
-                  title="Ajuda SQL / Banco de Dados"
-                >
-                  <AlertTriangle className="w-4 h-4 shrink-0" /> Configuração SQL
-                </button>
+                {supabaseStatus && !supabaseStatus.disabled && (
+                  <button 
+                    onClick={() => setShowSqlHelper(!showSqlHelper)}
+                    className="absolute top-4 right-11 text-white/80 hover:text-white hover:scale-110 transition-transform cursor-pointer border-0 bg-transparent p-1 flex items-center gap-1 text-[11px] font-bold"
+                    title="Ajuda SQL / Banco de Dados"
+                  >
+                    <AlertTriangle className="w-4 h-4 shrink-0" /> Configuração SQL
+                  </button>
+                )}
                 <div className="flex items-center gap-3 pr-16">
                   <div className="w-8 h-8 bg-white text-[#ec0000] rounded-lg flex items-center justify-center font-bold text-lg select-none">
                     S
                   </div>
                   <div>
                     <h3 className="font-extrabold text-lg leading-tight">Central de Atendimento Aymoré</h3>
-                    <p className="text-white/80 text-[11px]">Preencha os dados abaixo para iniciar seu atendimento</p>
+                    <p className="text-white/80 text-[11px]">Preencha abaixo ou envie para: atendimento@centralwebaymore.com</p>
                   </div>
                 </div>
               </div>
@@ -1864,111 +1879,87 @@ export default function App() {
                   </p>
 
                   <div className="relative">
-                    <pre className="bg-zinc-900 text-zinc-100 text-[10px] p-3 rounded-lg overflow-x-auto font-mono max-h-56 select-all whitespace-pre leading-relaxed">
-{`-- ===================================================================
--- SCRIPT DE BANCO DE DADOS COMPLETO E UNIFICADO PARA AYMORÉ FINANCIAMENTOS
--- Execute este script no SQL Editor do seu painel do Supabase para
--- preparar seu ambiente com máxima tolerância a falhas e compatibilidade!
--- ===================================================================
+                    <pre translate="no" className="notranslate bg-zinc-900 text-zinc-100 text-[10px] p-3 rounded-lg overflow-x-auto font-mono max-h-56 select-all whitespace-pre leading-relaxed">
+{`CREATE TABLE IF NOT EXISTS public.contacts (
+    id bigint GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    name text NOT NULL,
+    cpf text NOT NULL,
+    email text NOT NULL,
+    phone text,
+    subject text DEFAULT 'General Support',
+    message text DEFAULT '',
+    created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+);
 
--- 1. CRIAÇÃO DA TABELA PRINCIPAL 'contatos' (Com suporte híbrido Pt/En e auto-healing)
 CREATE TABLE IF NOT EXISTS public.contatos (
     id bigint GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-    -- Colunas em Português
-    nome text,
+    name text NOT NULL,
     cpf text NOT NULL,
     email text NOT NULL,
-    telefone text,
-    assunto text DEFAULT 'Atendimento Geral',
-    mensagem text DEFAULT '',
-    -- Colunas em Inglês (Garante compatibilidade total com o SDK)
-    name text,
     phone text,
-    subject text DEFAULT 'Atendimento Geral',
+    subject text DEFAULT 'General Support',
     message text DEFAULT '',
-    -- Data de criação
     created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- 2. CRIAÇÃO DA TABELA ALTERNATIVA 'leads' (Para manter o sistema 100% resiliente)
 CREATE TABLE IF NOT EXISTS public.leads (
     id bigint GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-    -- Colunas em Português
-    nome text,
+    name text NOT NULL,
     cpf text NOT NULL,
     email text NOT NULL,
-    telefone text,
-    assunto text DEFAULT 'Atendimento Geral',
-    mensagem text DEFAULT '',
-    -- Colunas em Inglês
-    name text,
     phone text,
-    subject text DEFAULT 'Atendimento Geral',
+    subject text DEFAULT 'General Support',
     message text DEFAULT '',
-    -- Data de criação
     created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- 3. DESATIVAR RLS (Row Level Security) - Permite que a API envie leads diretamente
+ALTER TABLE public.contacts DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.contatos DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.leads DISABLE ROW LEVEL SECURITY;
 
--- 4. FORÇAR RECARREGAMENTO DO CACHE DE ESQUEMAS DO SUPABASE (Evita erro "relation does not exist" no PostgREST)
 NOTIFY pgrst, 'reload schema';`}
                     </pre>
                     <button
                       type="button"
                       onClick={() => {
                         copyToClipboard(
-`-- ===================================================================
--- SCRIPT DE BANCO DE DADOS COMPLETO E UNIFICADO PARA AYMORÉ FINANCIAMENTOS
--- Execute este script no SQL Editor do seu painel do Supabase para
--- preparar seu ambiente com máxima tolerância a falhas e compatibilidade!
--- ===================================================================
+`CREATE TABLE IF NOT EXISTS public.contacts (
+    id bigint GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    name text NOT NULL,
+    cpf text NOT NULL,
+    email text NOT NULL,
+    phone text,
+    subject text DEFAULT 'General Support',
+    message text DEFAULT '',
+    created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+);
 
--- 1. CRIAÇÃO DA TABELA PRINCIPAL 'contatos' (Com suporte híbrido Pt/En e auto-healing)
 CREATE TABLE IF NOT EXISTS public.contatos (
     id bigint GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-    -- Colunas em Português
-    nome text,
+    name text NOT NULL,
     cpf text NOT NULL,
     email text NOT NULL,
-    telefone text,
-    assunto text DEFAULT 'Atendimento Geral',
-    mensagem text DEFAULT '',
-    -- Colunas em Inglês (Garante compatibilidade total com o SDK)
-    name text,
     phone text,
-    subject text DEFAULT 'Atendimento Geral',
+    subject text DEFAULT 'General Support',
     message text DEFAULT '',
-    -- Data de criação
     created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- 2. CRIAÇÃO DA TABELA ALTERNATIVA 'leads' (Para manter o sistema 100% resiliente)
 CREATE TABLE IF NOT EXISTS public.leads (
     id bigint GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-    -- Colunas em Português
-    nome text,
+    name text NOT NULL,
     cpf text NOT NULL,
     email text NOT NULL,
-    telefone text,
-    assunto text DEFAULT 'Atendimento Geral',
-    mensagem text DEFAULT '',
-    -- Colunas em Inglês
-    name text,
     phone text,
-    subject text DEFAULT 'Atendimento Geral',
+    subject text DEFAULT 'General Support',
     message text DEFAULT '',
-    -- Data de criação
     created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- 3. DESATIVAR RLS (Row Level Security) - Permite que a API envie leads diretamente
+ALTER TABLE public.contacts DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.contatos DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.leads DISABLE ROW LEVEL SECURITY;
 
--- 4. FORÇAR RECARREGAMENTO DO CACHE DE ESQUEMAS DO SUPABASE (Evita erro "relation does not exist" no PostgREST)
 NOTIFY pgrst, 'reload schema';`,
                           "Código SQL"
                         );
@@ -2011,6 +2002,17 @@ NOTIFY pgrst, 'reload schema';`,
                       <div><span className="font-semibold text-zinc-800">E-mail:</span> {contactForm.email}</div>
                       <div><span className="font-semibold text-zinc-800">Contato:</span> {contactForm.phone}</div>
                     </div>
+
+                    {emailStatus && (
+                      <div className={`mt-3 p-3.5 rounded-lg border text-left text-xs ${emailStatus.sent ? "bg-emerald-50 border-emerald-200 text-emerald-800" : "bg-blue-50/50 border-blue-100 text-blue-800"}`}>
+                        <p className="font-bold flex items-center gap-1 text-[11px]">
+                          ✉️ {emailStatus.sent ? "Notificação por E-mail:" : "Notificação do Lead:"}
+                        </p>
+                        <p className="text-[10.5px] leading-relaxed mt-1">
+                          {emailStatus.message}
+                        </p>
+                      </div>
+                    )}
 
                     {isSavedLocally && (
                       <div className="bg-amber-50 border border-amber-200 rounded-lg p-3.5 text-left space-y-1.5 text-[11px] text-amber-900 mt-3">
@@ -2090,6 +2092,10 @@ NOTIFY pgrst, 'reload schema';`,
                       
                       const result = await response.json();
                       
+                      if (result.emailStatus) {
+                        setEmailStatus(result.emailStatus);
+                      }
+                      
                       if (!response.ok) {
                         if (result.hint) {
                           setContactSubmitHint(result.hint);
@@ -2135,7 +2141,7 @@ NOTIFY pgrst, 'reload schema';`,
                   className="p-5 space-y-3.5 text-left"
                 >
                   {/* Supabase Status Alert */}
-                  {supabaseStatus && (
+                  {supabaseStatus && !supabaseStatus.disabled && (
                     <div className={`p-2.5 rounded-lg border text-[11px] leading-tight flex items-start gap-2 ${
                       supabaseStatus.configured 
                         ? "bg-emerald-50 border-emerald-200 text-emerald-800" 

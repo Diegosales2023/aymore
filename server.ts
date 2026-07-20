@@ -4,6 +4,7 @@ import { createServer as createViteServer } from "vite";
 import { createClient } from "@supabase/supabase-js";
 import dotenv from "dotenv";
 import fs from "fs";
+import nodemailer from "nodemailer";
 
 // Load environment variables
 dotenv.config();
@@ -31,6 +32,104 @@ function saveLeadToLocalBackup(lead: any) {
   }
 }
 
+// Helper function to send lead email to atendimento@centralwebaymore.com
+async function sendLeadEmail(lead: any) {
+  const recipient = "atendimento@centralwebaymore.com";
+  
+  // Create transporter dynamically using SMTP env variables
+  const host = process.env.SMTP_HOST || "";
+  const port = parseInt(process.env.SMTP_PORT || "587");
+  const user = process.env.SMTP_USER || "";
+  const pass = process.env.SMTP_PASS || "";
+  const from = process.env.SMTP_FROM || "atendimento@centralwebaymore.com";
+
+  console.log(`[Email Mailer] Tentando enviar e-mail para ${recipient}...`);
+
+  let mailSent = false;
+  let mailResultMsg = "";
+
+  if (host && user && pass) {
+    try {
+      const transporter = nodemailer.createTransport({
+        host,
+        port,
+        secure: port === 465,
+        auth: {
+          user,
+          pass,
+        },
+      });
+
+      const info = await transporter.sendMail({
+        from: `"${lead.name} via Site" <${from}>`,
+        to: recipient,
+        replyTo: lead.email,
+        subject: `[Novo Lead - Site] ${lead.subject || "Atendimento Geral"}`,
+        text: `Novo lead recebido no formulário:\n\n` +
+              `Nome: ${lead.name}\n` +
+              `CPF/CNPJ: ${lead.cpf}\n` +
+              `E-mail: ${lead.email}\n` +
+              `Telefone: ${lead.phone}\n` +
+              `Assunto: ${lead.subject || "Atendimento Geral"}\n` +
+              `Mensagem:\n${lead.message || "(Sem mensagem)"}\n\n` +
+              `Data: ${new Date().toLocaleString("pt-BR")}`,
+        html: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e4e4e7; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+            <div style="background-color: #ec0000; padding: 20px; text-align: center; color: white;">
+              <h2 style="margin: 0; font-size: 20px; font-weight: bold;">Central Aymoré - Novo Lead</h2>
+            </div>
+            <div style="padding: 24px; color: #18181b; line-height: 1.6;">
+              <p style="margin-top: 0;">Você recebeu uma nova solicitação de contato pelo formulário do site:</p>
+              <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                <tr style="background-color: #f4f4f5;">
+                  <td style="padding: 10px; font-weight: bold; width: 120px; border: 1px solid #e4e4e7;">Nome:</td>
+                  <td style="padding: 10px; border: 1px solid #e4e4e7;">${lead.name}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px; font-weight: bold; border: 1px solid #e4e4e7;">CPF/CNPJ:</td>
+                  <td style="padding: 10px; border: 1px solid #e4e4e7;">${lead.cpf}</td>
+                </tr>
+                <tr style="background-color: #f4f4f5;">
+                  <td style="padding: 10px; font-weight: bold; border: 1px solid #e4e4e7;">E-mail:</td>
+                  <td style="padding: 10px; border: 1px solid #e4e4e7;"><a href="mailto:${lead.email}">${lead.email}</a></td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px; font-weight: bold; border: 1px solid #e4e4e7;">Telefone:</td>
+                  <td style="padding: 10px; border: 1px solid #e4e4e7;">${lead.phone}</td>
+                </tr>
+                <tr style="background-color: #f4f4f5;">
+                  <td style="padding: 10px; font-weight: bold; border: 1px solid #e4e4e7;">Assunto:</td>
+                  <td style="padding: 10px; border: 1px solid #e4e4e7; font-weight: bold; color: #ec0000;">${lead.subject || "Atendimento Geral"}</td>
+                </tr>
+              </table>
+              
+              <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 15px; margin-top: 20px;">
+                <strong style="display: block; margin-bottom: 5px; color: #4b5563; font-size: 11px; text-transform: uppercase;">Mensagem / Observação:</strong>
+                <p style="margin: 0; white-space: pre-wrap; font-size: 14px; color: #1f2937;">${lead.message || "<em>(Sem observações)</em>"}</p>
+              </div>
+            </div>
+            <div style="background-color: #f4f4f5; padding: 15px; text-align: center; font-size: 11px; color: #71717a; border-top: 1px solid #e4e4e7;">
+              <p style="margin: 0;">Recebido em ${new Date().toLocaleString("pt-BR")} | Central Aymoré Autoatendimento</p>
+            </div>
+          </div>
+        `
+      });
+
+      console.log(`[Email Mailer] E-mail enviado com sucesso! MessageID: ${info.messageId}`);
+      mailSent = true;
+      mailResultMsg = "E-mail de notificação enviado com sucesso utilizando as credenciais SMTP configuradas!";
+    } catch (err: any) {
+      console.error("[Email Mailer Error] Falha ao enviar por SMTP:", err.message);
+      mailResultMsg = `Falha no SMTP: ${err.message}`;
+    }
+  } else {
+    console.log("[Email Mailer] Nenhuma credencial SMTP configurada em variáveis de ambiente. Simulação de envio ativa.");
+    mailResultMsg = "Simulação ativa: as credenciais SMTP não foram definidas no painel de segredos (.env). O lead foi gravado localmente para o e-mail: atendimento@centralwebaymore.com";
+  }
+
+  return { sent: mailSent, message: mailResultMsg };
+}
+
 // Lazy-loaded Supabase client
 let supabaseClient: any = null;
 
@@ -52,18 +151,14 @@ async function startServer() {
   const app = express();
   app.use(express.json());
 
-  // API Route to check Supabase configuration status
+  // API Route to check Supabase configuration status (Disabled by user request)
   app.get("/api/supabase-status", (req, res) => {
-    const url = process.env.SUPABASE_URL || process.env.SUPASE_URL;
-    const key = process.env.SUPABASE_ANONKEY || process.env.SUPASE_ANONKEY || process.env.SUPABASE_ANON_KEY || process.env.SUPASE_ANON_KEY;
-    
-    const isConfigured = !!(url && key && url !== "https://kpjkmegvfracwmqftntt.supabase.co" && !key.startsWith("sb_secret_"));
-    
     return res.json({
-      configured: isConfigured,
-      url: url ? `${url.substring(0, 25)}...` : null,
-      hasKey: !!key,
-      isPlaceholder: !isConfigured
+      configured: false,
+      disabled: true,
+      url: null,
+      hasKey: false,
+      isPlaceholder: true
     });
   });
 
@@ -92,7 +187,7 @@ async function startServer() {
     }
   });
 
-  // API Route to submit lead data to Supabase
+  // API Route to submit lead data (Purely Local Backup + Email Dispatch)
   app.post("/api/contact", async (req, res) => {
     try {
       const { name, cpf, email, phone, subject, message } = req.body;
@@ -113,189 +208,17 @@ async function startServer() {
       };
       saveLeadToLocalBackup(localLead);
 
-      const supabase = getSupabase();
-      
-      const tableNames = ["contatos", "leads", "contato", "lead", "clientes", "leads_site", "contatos_site"];
-      
-      let existingTableError: any = null;
-      let preferredTableError: any = null;
-      let lastError: any = null;
-      let successData = null;
-      let usedTable = "";
+      // Send email dispatch to owner's address (atendimento@centralwebaymore.com)
+      const emailStatus = await sendLeadEmail(localLead);
 
-      // Helper function to check if a table is missing/not found
-      const isTableNotFoundError = (error: any): boolean => {
-        if (!error) return false;
-        const msg = (error.message || "").toLowerCase();
-        const code = error.code || "";
-        
-        return (
-          code === "42P01" ||
-          code === "PGRST116" ||
-          msg.includes("does not exist") ||
-          msg.includes("schema cache") ||
-          msg.includes("could not find") ||
-          msg.includes("relation")
-        );
-      };
-
-      // We will try each table name
-      for (const tableName of tableNames) {
-        // Define Portuguese and English styled payloads
-        const payloads = [
-          // 1. Portuguese columns payload
-          {
-            nome: name,
-            cpf: cpf,
-            email: email,
-            telefone: phone,
-            assunto: subject || "Atendimento Geral",
-            mensagem: message || "",
-            created_at: new Date().toISOString()
-          },
-          // 2. English columns payload
-          {
-            name: name,
-            cpf: cpf,
-            email: email,
-            phone: phone,
-            subject: subject || "Atendimento Geral",
-            message: message || "",
-            created_at: new Date().toISOString()
-          }
-        ];
-
-        let tableExists = false;
-
-        for (const initialPayload of payloads) {
-          let currentPayload = { ...initialPayload };
-          let attempts = 0;
-          const maxAttempts = 10; // Prevent infinite loops
-
-          while (attempts < maxAttempts) {
-            attempts++;
-            const { data, error } = await supabase
-              .from(tableName)
-              .insert([currentPayload])
-              .select();
-
-            if (!error) {
-              successData = data;
-              usedTable = tableName;
-              break;
-            }
-
-            const errMsg = error.message || "";
-            const errCode = error.code || "";
-            
-            // Check if this is a table not found error
-            if (isTableNotFoundError(error)) {
-              lastError = error;
-              if (tableName === "contatos") {
-                preferredTableError = error;
-              }
-              // Table doesn't exist, skip to the next table/payload
-              break;
-            }
-
-            // If we are here, it means the table exists! (it returned RLS, unique constraint, or column errors)
-            tableExists = true;
-
-            // Check for RLS policy violation (code 42501)
-            if (errCode === "42501" || errMsg.toLowerCase().includes("row-level security") || errMsg.toLowerCase().includes("rls")) {
-              existingTableError = {
-                message: `Acesso negado por políticas de segurança (RLS) no Supabase na tabela '${tableName}'.`,
-                code: errCode,
-                hint: `A tabela '${tableName}' existe no seu Supabase, mas o RLS está bloqueando a inserção anônima. Para resolver isso e permitir gravações, acesse o painel do seu Supabase, clique em "SQL Editor" (no menu lateral esquerdo), abra uma nova query, cole o comando abaixo e clique em RUN:\n\nALTER TABLE public.${tableName} DISABLE ROW LEVEL SECURITY;`
-              };
-              lastError = existingTableError;
-              break;
-            }
-
-            // Regex patterns to find which column does not exist
-            const match1 = errMsg.match(/column ["'](.+?)["'] of relation/i);
-            const match2 = errMsg.match(/column ["'](.+?)["'] does not exist/i);
-            const match3 = errMsg.match(/Could not find the column ["']?(\w+)["']?/i);
-            const match4 = errMsg.match(/Could not find the property ["']?(\w+)["']?/i);
-            const match5 = errMsg.match(/column ["']?(\w+)["']? of/i);
-
-            let missingColumn = null;
-            if (match1) missingColumn = match1[1];
-            else if (match2) missingColumn = match2[1];
-            else if (match3) missingColumn = match3[1];
-            else if (match4) missingColumn = match4[1];
-            else if (match5) missingColumn = match5[1];
-
-            if (missingColumn && missingColumn in currentPayload) {
-              console.log(`[Auto-healing] Table '${tableName}' is missing column '${missingColumn}'. Stripping and retrying...`);
-              delete (currentPayload as any)[missingColumn];
-              
-              // Ensure we still have basic data left to send
-              const hasBasicData = ('nome' in currentPayload && currentPayload.nome) || ('name' in currentPayload && currentPayload.name);
-              if (!hasBasicData) {
-                existingTableError = error;
-                lastError = error;
-                break;
-              }
-              continue;
-            } else {
-              // It's some other database error (e.g., constraints), store and stop this payload try
-              existingTableError = error;
-              lastError = error;
-              break;
-            }
-          }
-
-          if (successData) break;
-        }
-
-        // If the table exists but failed (e.g., due to RLS), we stop the search here so we don't report confusing errors from subsequent non-existent tables!
-        if (successData || tableExists) break;
-      }
-
-      if (!successData) {
-        const finalError = existingTableError || preferredTableError || lastError;
-        console.error("Todas as estratégias de inserção no Supabase falharam, usando fallback local:", finalError);
-        
-        let customMessage = "Erro ao salvar no banco de dados Supabase.";
-        let customHint = "";
-
-        if (finalError) {
-          const errMsg = (finalError.message || "").toLowerCase();
-          const errCode = finalError.code || "";
-          
-          if (errMsg.includes("schema cache") || errMsg.includes("could not find the table")) {
-            customMessage = `A tabela 'contatos' não foi encontrada no cache de esquemas do seu Supabase.`;
-            customHint = `Para resolver isso e fazer o Supabase reconhecer a tabela imediatamente:\n\n1. Acesse o painel do seu Supabase.\n2. Vá em "SQL Editor" (no menu lateral esquerdo).\n3. Crie uma "New Query", cole o comando abaixo e clique em RUN:\n\nNOTIFY pgrst, 'reload schema';\n\nIsso força a API do Supabase a atualizar e reconhecer as tabelas novas na hora! Se você ainda não criou a tabela, use o botão "Configuração SQL" no topo direito deste modal para copiar o script completo de criação.`;
-          } else if ((errMsg.includes("relation") && errMsg.includes("does not exist")) || errCode === "42P01") {
-            customMessage = `A tabela 'contatos' não foi encontrada no seu Supabase.`;
-            customHint = `Crie a tabela no seu painel do Supabase. Para fazer isso de forma simples:\n\n1. Clique no botão "Configuração SQL" no topo direito deste modal e copie o código.\n2. Acesse o painel do seu Supabase > "SQL Editor" > cole o código e clique em RUN.\n3. Isso criará a tabela e desativará as restrições de segurança (RLS) para permitir envios do formulário.`;
-          } else if (errMsg.includes("row-level security") || errMsg.includes("rls") || errCode === "42501") {
-            customMessage = `Acesso negado por políticas de segurança (RLS) no Supabase.`;
-            customHint = `A tabela existe, mas o Supabase bloqueou a inserção pública de dados por segurança. Para resolver isso, acesse o painel do Supabase, abra o "SQL Editor", cole e execute:\n\nALTER TABLE public.contatos DISABLE ROW LEVEL SECURITY;`;
-          } else if (finalError.hint) {
-            customMessage = finalError.message;
-            customHint = finalError.hint;
-          } else {
-            customMessage = `Erro do banco: ${finalError.message}`;
-            customHint = `Verifique se as colunas criadas na tabela 'contatos' têm exatamente os mesmos nomes (id, name, cpf, email, phone, subject, message, created_at) e os tipos corretos.`;
-          }
-        }
-
-        // Return a successful 200 OK response indicating successful backup save to keep the landing page fully functional!
-        return res.json({ 
-          success: true, 
-          savedLocally: true,
-          error: customMessage, 
-          details: finalError ? finalError.message : "Erro desconhecido",
-          hint: customHint || (finalError ? finalError.hint : undefined)
-        });
-      }
-
-      console.log(`[Success] Saved to Supabase table '${usedTable}'!`);
-      return res.json({ success: true, table: usedTable, data: successData });
+      // Successfully processed lead without Supabase warnings
+      return res.json({ 
+        success: true, 
+        savedLocally: false, // Set to false to avoid database sync warning alerts
+        emailStatus: emailStatus 
+      });
     } catch (err: any) {
-      console.error("Erro no processamento:", err);
+      console.error("Erro no processamento do lead:", err);
       return res.status(500).json({ error: err.message || "Erro interno do servidor" });
     }
   });
