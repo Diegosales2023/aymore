@@ -33,93 +33,92 @@
         var OriginalWebSocket = window.WebSocket;
         if (OriginalWebSocket) {
           var InterceptedWebSocket = function(url, protocols) {
-            // Check if the target URL looks like a dev server websocket or matches local/sandbox urls
-            if (typeof url === 'string' && (
+            // Only intercept if it's explicitly a Vite HMR connection or local development WebSocket
+            var isViteHmr = protocols === 'vite-hmr' || (typeof url === 'string' && (
               url.indexOf('localhost') !== -1 || 
-              url.indexOf('run.app') !== -1 || 
-              url.indexOf('vite') !== -1 || 
               url.indexOf('127.0.0.1') !== -1 ||
               url.indexOf('0.0.0.0') !== -1 ||
-              url.indexOf('websocket') !== -1
-            )) {
+              url.indexOf('/vite') !== -1
+            ));
+
+            if (isViteHmr) {
               console.debug('Intercepting Vite HMR WebSocket connection:', url);
               
-              this.url = url;
-              this.protocols = protocols;
-              this.readyState = 1; // OPEN
-              this.bufferedAmount = 0;
-              this.extensions = "";
-              this.protocol = "";
-              this.binaryType = "blob";
-              this._listeners = {};
+              var mock = Object.create(InterceptedWebSocket.prototype);
+              mock.url = url;
+              mock.protocols = protocols;
+              mock.readyState = 1; // OPEN
+              mock.bufferedAmount = 0;
+              mock.extensions = "";
+              mock.protocol = "";
+              mock.binaryType = "blob";
+              mock._listeners = {};
+              mock._isMockWebSocket = true;
 
-              var self = this;
               setTimeout(function() {
-                var event = { type: 'open', target: self };
-                if (typeof self.onopen === 'function') {
-                  try { self.onopen(event); } catch (e) {}
+                var event = { type: 'open', target: mock };
+                if (typeof mock.onopen === 'function') {
+                  try { mock.onopen(event); } catch (e) {}
                 }
-                self._trigger('open', event);
+                mock._trigger('open', event);
               }, 10);
-              return this;
+              
+              return mock;
             }
+            
+            // For Supabase or any other actual service, return the original native WebSocket directly
             return new OriginalWebSocket(url, protocols);
           };
 
-          InterceptedWebSocket.prototype = Object.create(OriginalWebSocket.prototype);
-          InterceptedWebSocket.prototype.constructor = InterceptedWebSocket;
-
-          InterceptedWebSocket.prototype.send = function(data) {
-            console.debug("Mock WebSocket sent:", data);
-          };
-
-          InterceptedWebSocket.prototype.close = function(code, reason) {
-            if (this.readyState === 3) return;
-            this.readyState = 3; // CLOSED
-            var self = this;
-            setTimeout(function() {
-              var event = { type: 'close', code: code || 1000, reason: reason || "", wasClean: true, target: self };
-              if (typeof self.onclose === 'function') {
-                try { self.onclose(event); } catch (e) {}
-              }
-              self._trigger('close', event);
-            }, 10);
-          };
-
-          InterceptedWebSocket.prototype.addEventListener = function(type, callback) {
-            if (!this._listeners) this._listeners = {};
-            if (!this._listeners[type]) {
-              this._listeners[type] = [];
-            }
-            this._listeners[type].push(callback);
-          };
-
-          InterceptedWebSocket.prototype.removeEventListener = function(type, callback) {
-            if (!this._listeners || !this._listeners[type]) return;
-            var index = this._listeners[type].indexOf(callback);
-            if (index !== -1) {
-              this._listeners[type].splice(index, 1);
-            }
-          };
-
-          InterceptedWebSocket.prototype.dispatchEvent = function() {
-            return true;
-          };
-
-          InterceptedWebSocket.prototype._trigger = function(type, event) {
-            if (this._listeners && this._listeners[type]) {
+          // Use a clean prototype without native getters/setters to prevent "Illegal invocation" errors
+          InterceptedWebSocket.prototype = {
+            constructor: InterceptedWebSocket,
+            send: function(data) {
+              console.debug("Mock WebSocket sent:", data);
+            },
+            close: function(code, reason) {
+              if (this.readyState === 3) return;
+              this.readyState = 3; // CLOSED
               var self = this;
-              // Slice to avoid modification issues during iteration
-              var list = this._listeners[type].slice();
-              list.forEach(function(callback) {
-                try {
-                  if (typeof callback === 'function') {
-                    callback.call(self, event);
-                  } else if (callback && typeof callback.handleEvent === 'function') {
-                    callback.handleEvent(event);
-                  }
-                } catch (e) {}
-              });
+              setTimeout(function() {
+                var event = { type: 'close', code: code || 1000, reason: reason || "", wasClean: true, target: self };
+                if (typeof self.onclose === 'function') {
+                  try { self.onclose(event); } catch (e) {}
+                }
+                self._trigger('close', event);
+              }, 10);
+            },
+            addEventListener: function(type, callback) {
+              if (!this._listeners) this._listeners = {};
+              if (!this._listeners[type]) {
+                this._listeners[type] = [];
+              }
+              this._listeners[type].push(callback);
+            },
+            removeEventListener: function(type, callback) {
+              if (!this._listeners || !this._listeners[type]) return;
+              var index = this._listeners[type].indexOf(callback);
+              if (index !== -1) {
+                this._listeners[type].splice(index, 1);
+              }
+            },
+            dispatchEvent: function() {
+              return true;
+            },
+            _trigger: function(type, event) {
+              if (this._listeners && this._listeners[type]) {
+                var self = this;
+                var list = this._listeners[type].slice();
+                list.forEach(function(callback) {
+                  try {
+                    if (typeof callback === 'function') {
+                      callback.call(self, event);
+                    } else if (callback && typeof callback.handleEvent === 'function') {
+                      callback.handleEvent(event);
+                    }
+                  } catch (e) {}
+                });
+              }
             }
           };
 
@@ -127,6 +126,14 @@
           InterceptedWebSocket.OPEN = 1;
           InterceptedWebSocket.CLOSING = 2;
           InterceptedWebSocket.CLOSED = 3;
+
+          // Override Symbol.hasInstance so that both native and mock sockets pass "instanceof WebSocket"
+          Object.defineProperty(InterceptedWebSocket, Symbol.hasInstance, {
+            configurable: true,
+            value: function(instance) {
+              return (instance && instance._isMockWebSocket) || (instance instanceof OriginalWebSocket);
+            }
+          });
           
           window.WebSocket = InterceptedWebSocket;
         }

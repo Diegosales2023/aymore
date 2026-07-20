@@ -1686,6 +1686,7 @@ ALTER TABLE public.contatos DISABLE ROW LEVEL SECURITY;`,
                     
                     setContactErrors({});
                     setIsSubmittingContact(true);
+                    setContactSubmitError(null);
                     
                     try {
                       const response = await fetch("/api/contact", {
@@ -1704,7 +1705,10 @@ ALTER TABLE public.contatos DISABLE ROW LEVEL SECURITY;`,
                       const result = await response.json();
                       
                       if (!response.ok) {
-                        throw new Error(result.error || "Erro ao salvar no Supabase");
+                        const errorMsg = result.details 
+                          ? `${result.error} [Detalhes: ${result.details}]` 
+                          : (result.error || "Erro ao salvar no Supabase");
+                        throw new Error(errorMsg);
                       }
                       
                       setIsSubmittingContact(false);
@@ -1716,6 +1720,7 @@ ALTER TABLE public.contatos DISABLE ROW LEVEL SECURITY;`,
                     } catch (error: any) {
                       console.error("Erro ao enviar formulário:", error);
                       setIsSubmittingContact(false);
+                      setContactSubmitError(error.message || "Erro desconhecido ao salvar no Supabase.");
                       setToast({
                         message: `Erro ao salvar no Supabase: ${error.message || "Tente novamente."}`,
                         type: "error"
@@ -1744,6 +1749,26 @@ ALTER TABLE public.contatos DISABLE ROW LEVEL SECURITY;`,
                             <span>Você precisa conectar o seu projeto do Supabase para salvar e consultar as leads permanentemente. Clique em <button type="button" onClick={() => setShowSqlHelper(true)} className="underline text-amber-950 font-bold bg-transparent border-0 cursor-pointer p-0 hover:text-amber-700 transition-colors">Configuração SQL</button> ou siga o passo a passo.</span>
                           </>
                         )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Submission Error Alert */}
+                  {contactSubmitError && (
+                    <div className="p-3 bg-red-50 border border-red-200 text-red-900 rounded-lg text-xs leading-relaxed space-y-1">
+                      <div className="flex items-center gap-1.5 font-bold text-red-700">
+                        <AlertTriangle className="w-4 h-4 shrink-0" />
+                        <span>Ops! Erro ao Salvar no Supabase</span>
+                      </div>
+                      <p className="text-[11px] font-medium">{contactSubmitError}</p>
+                      <div className="text-[10px] text-zinc-600 mt-1.5 border-t border-red-100 pt-1.5 space-y-1">
+                        <p>💡 <strong>Como resolver rapidamente:</strong></p>
+                        <ol className="list-decimal pl-4 space-y-0.5">
+                          <li>Clique no botão <strong>Configuração SQL</strong> no topo direito deste modal.</li>
+                          <li>Copie o script SQL exibido lá.</li>
+                          <li>Acesse o painel do seu <strong>Supabase</strong> &gt; <strong>SQL Editor</strong> &gt; cole o código e clique em <strong>Run</strong>.</li>
+                          <li>Isso garante que a tabela <code className="bg-red-100 px-1 rounded">contatos</code> exista com permissão de gravação!</li>
+                        </ol>
                       </div>
                     </div>
                   )}
