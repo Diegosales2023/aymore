@@ -229,6 +229,7 @@ export default function App() {
   const [isSubmittingContact, setIsSubmittingContact] = useState(false);
   const [contactSubmitSuccess, setContactSubmitSuccess] = useState(false);
   const [contactSubmitError, setContactSubmitError] = useState<string | null>(null);
+  const [contactSubmitHint, setContactSubmitHint] = useState<string | null>(null);
   const [supabaseStatus, setSupabaseStatus] = useState<{ configured: boolean; url: string | null; hasKey: boolean; isPlaceholder: boolean } | null>(null);
 
   const checkSupabaseStatus = async () => {
@@ -255,6 +256,7 @@ export default function App() {
     setContactErrors({});
     setContactSubmitSuccess(false);
     setContactSubmitError(null);
+    setContactSubmitHint(null);
     setShowSqlHelper(false);
     setIsContactModalOpen(true);
     checkSupabaseStatus();
@@ -1687,6 +1689,7 @@ ALTER TABLE public.contatos DISABLE ROW LEVEL SECURITY;`,
                     setContactErrors({});
                     setIsSubmittingContact(true);
                     setContactSubmitError(null);
+                    setContactSubmitHint(null);
                     
                     try {
                       const response = await fetch("/api/contact", {
@@ -1705,6 +1708,9 @@ ALTER TABLE public.contatos DISABLE ROW LEVEL SECURITY;`,
                       const result = await response.json();
                       
                       if (!response.ok) {
+                        if (result.hint) {
+                          setContactSubmitHint(result.hint);
+                        }
                         const errorMsg = result.details 
                           ? `${result.error} [Detalhes: ${result.details}]` 
                           : (result.error || "Erro ao salvar no Supabase");
@@ -1761,15 +1767,23 @@ ALTER TABLE public.contatos DISABLE ROW LEVEL SECURITY;`,
                         <span>Ops! Erro ao Salvar no Supabase</span>
                       </div>
                       <p className="text-[11px] font-medium">{contactSubmitError}</p>
-                      <div className="text-[10px] text-zinc-600 mt-1.5 border-t border-red-100 pt-1.5 space-y-1">
-                        <p>💡 <strong>Como resolver rapidamente:</strong></p>
-                        <ol className="list-decimal pl-4 space-y-0.5">
-                          <li>Clique no botão <strong>Configuração SQL</strong> no topo direito deste modal.</li>
-                          <li>Copie o script SQL exibido lá.</li>
-                          <li>Acesse o painel do seu <strong>Supabase</strong> &gt; <strong>SQL Editor</strong> &gt; cole o código e clique em <strong>Run</strong>.</li>
-                          <li>Isso garante que a tabela <code className="bg-red-100 px-1 rounded">contatos</code> exista com permissão de gravação!</li>
-                        </ol>
-                      </div>
+                      
+                      {contactSubmitHint ? (
+                        <div className="text-[10px] text-zinc-700 mt-1.5 border-t border-red-100 pt-1.5 whitespace-pre-line leading-normal bg-amber-50/50 p-2 rounded border border-amber-100">
+                          <p className="font-bold text-amber-900 mb-1">💡 Instruções específicas para resolver:</p>
+                          {contactSubmitHint}
+                        </div>
+                      ) : (
+                        <div className="text-[10px] text-zinc-600 mt-1.5 border-t border-red-100 pt-1.5 space-y-1">
+                          <p>💡 <strong>Como resolver rapidamente:</strong></p>
+                          <ol className="list-decimal pl-4 space-y-0.5">
+                            <li>Clique no botão <strong>Configuração SQL</strong> no topo direito deste modal.</li>
+                            <li>Copie o script SQL exibido lá.</li>
+                            <li>Acesse o painel do seu <strong>Supabase</strong> &gt; <strong>SQL Editor</strong> &gt; cole o código e clique em <strong>Run</strong>.</li>
+                            <li>Isso garante que a tabela <code className="bg-red-100 px-1 rounded">contatos</code> exista com permissão de gravação!</li>
+                          </ol>
+                        </div>
+                      )}
                     </div>
                   )}
 

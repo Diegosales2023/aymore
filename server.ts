@@ -63,6 +63,22 @@ async function startServer() {
       let successData = null;
       let usedTable = "";
 
+      // Helper function to check if a table is missing/not found
+      const isTableNotFoundError = (error: any): boolean => {
+        if (!error) return false;
+        const msg = (error.message || "").toLowerCase();
+        const code = error.code || "";
+        
+        return (
+          code === "42P01" ||
+          code === "PGRST116" ||
+          msg.includes("does not exist") ||
+          msg.includes("schema cache") ||
+          msg.includes("could not find") ||
+          msg.includes("relation")
+        );
+      };
+
       // We will try each table name
       for (const tableName of tableNames) {
         // Define Portuguese and English styled payloads
@@ -89,6 +105,8 @@ async function startServer() {
           }
         ];
 
+        let tableExists = false;
+
         for (const initialPayload of payloads) {
           let currentPayload = { ...initialPayload };
           let attempts = 0;
@@ -110,34 +128,24 @@ async function startServer() {
             const errMsg = error.message || "";
             const errCode = error.code || "";
             
-            // If the error is NOT that the table doesn't exist, it means the table exists but has some other issue!
-            if (errCode !== "42P01" && !errMsg.toLowerCase().includes("does not exist")) {
-              if (errCode === "42501" || errMsg.toLowerCase().includes("row-level security") || errMsg.toLowerCase().includes("rls")) {
-                existingTableError = {
-                  message: `Violação de RLS (Segurança de Linha) na tabela '${tableName}'.`,
-                  code: errCode,
-                  hint: `A tabela '${tableName}' existe, mas o Supabase bloqueou a inserção de dados por motivos de segurança. Para resolver, acesse o painel do seu Supabase, clique em "SQL Editor" (no menu lateral esquerdo), cole e execute o comando: ALTER TABLE public.${tableName} DISABLE ROW LEVEL SECURITY;`
-                };
-              } else {
-                existingTableError = error;
-              }
-            }
-
-            // Check for RLS policy violation (code 42501)
-            if (errCode === "42501" || errMsg.toLowerCase().includes("row-level security") || errMsg.toLowerCase().includes("rls")) {
-              lastError = {
-                message: `Violação de RLS (Segurança de Linha). Ative a inserção pública ou desative o RLS para a tabela '${tableName}'.`,
-                code: errCode,
-                hint: `Execute no SQL Editor: ALTER TABLE public.${tableName} DISABLE ROW LEVEL SECURITY;`
-              };
-              // This is a policy issue, not a column issue, so don't try to strip columns for this payload.
+            // Check if this is a table not found error
+            if (isTableNotFoundError(error)) {
+              lastError = error;
+              // Table doesn't exist, skip to the next table/payload
               break;
             }
 
-            // Detect if the table does not exist
-            if (errCode === "42P01" || (errMsg.toLowerCase().includes("does not exist") && errMsg.toLowerCase().includes("relation"))) {
-              lastError = error;
-              // Table doesn't exist, skip to the next table name
+            // If we are here, it means the table exists! (it returned RLS, unique constraint, or column errors)
+            tableExists = true;
+
+            // Check for RLS policy violation (code 42501)
+            if (errCode === "42501" || errMsg.toLowerCase().includes("row-level security") || errMsg.toLowerCase().includes("rls")) {
+              existingTableError = {
+                message: `Acesso negado por políticas de segurança (RLS) no Supabase na tabela '${tableName}'.`,
+                code: errCode,
+                hint: `A tabela '${tableName}' existe no seu Supabase, mas o RLS está bloqueando a inserção anônima. Para resolver isso e permitir gravações, acesse o painel do seu Supabase, clique em "SQL Editor" (no menu lateral esquerdo), abra uma nova query, cole o comando abaixo e clique em RUN:\n\nALTER TABLE public.${tableName} DISABLE ROW LEVEL SECURITY;`
+              };
+              lastError = existingTableError;
               break;
             }
 
@@ -162,21 +170,24 @@ async function startServer() {
               // Ensure we still have basic data left to send
               const hasBasicData = ('nome' in currentPayload && currentPayload.nome) || ('name' in currentPayload && currentPayload.name);
               if (!hasBasicData) {
+                existingTableError = error;
                 lastError = error;
                 break;
               }
               continue;
             } else {
               // It's some other database error (e.g., constraints), store and stop this payload try
+              existingTableError = error;
               lastError = error;
               break;
             }
           }
 
-          if (successData) break;
+          if (successData || tableExists) break;
         }
 
-        if (successData) break;
+        // If the table exists but failed (e.g., due to RLS), we stop the search here so we don't report confusing errors from subsequent non-existent tables!
+        if (successData || tableExists) break;
       }
 
       if (!successData) {
@@ -184,19 +195,33 @@ async function startServer() {
         console.error("Todas as estratégias de inserção no Supabase falharam:", finalError);
         
         let customMessage = "Erro ao salvar no banco de dados Supabase.";
-        if (finalError && finalError.hint) {
-          customMessage = `${finalError.message} Dica: ${finalError.hint}`;
-        } else if (finalError && finalError.message) {
-          if (finalError.message.includes("relation") && finalError.message.includes("does not exist")) {
-            customMessage = `A tabela não foi encontrada no seu Supabase. Crie uma tabela chamada 'contatos' no seu painel.`;
+        let customHint = "";
+
+        if (finalError) {
+          const errMsg = (finalError.message || "").toLowerCase();
+          
+          if (finalError.hint) {
+            customMessage = finalError.message;
+            customHint = finalError.hint;
+          } else if (errMsg.includes("schema cache") || errMsg.includes("could not find the table")) {
+            customMessage = `Tabela não encontrada no cache de esquemas do Supabase.`;
+            customHint = `Se você acabou de criar a tabela 'contatos' no Supabase, a API dele pode demorar até 1 minuto para recarregar o cache de esquemas. Tente atualizar a página do painel do seu Supabase ou rodar uma query simples no SQL Editor para forçar a atualização da API.`;
+          } else if (errMsg.includes("relation") && errMsg.includes("does not exist") || finalError.code === "42P01") {
+            customMessage = `A tabela não foi encontrada no seu Supabase.`;
+            customHint = `Crie uma tabela chamada 'contatos' no seu painel do Supabase. Você pode copiar o script SQL disponível clicando no botão "Configuração SQL" no topo direito deste modal e executando-o no SQL Editor do Supabase.`;
+          } else if (errMsg.includes("row-level security") || errMsg.includes("rls") || finalError.code === "42501") {
+            customMessage = `Acesso negado por políticas de segurança (RLS) no Supabase.`;
+            customHint = `A tabela existe, mas o Supabase bloqueou a inserção pública de dados por segurança. Para resolver isso, acesse o painel do Supabase, abra o "SQL Editor", cole e execute: ALTER TABLE public.contatos DISABLE ROW LEVEL SECURITY;`;
           } else {
             customMessage = `Erro do banco: ${finalError.message}`;
+            customHint = `Verifique se as colunas criadas na tabela 'contatos' têm exatamente os mesmos nomes (id, name, cpf, email, phone, subject, message, created_at) e os tipos corretos.`;
           }
         }
 
         return res.status(500).json({ 
           error: customMessage, 
-          details: finalError ? finalError.message : "Erro desconhecido" 
+          details: finalError ? finalError.message : "Erro desconhecido",
+          hint: customHint || (finalError ? finalError.hint : undefined)
         });
       }
 
