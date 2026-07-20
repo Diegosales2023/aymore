@@ -138,17 +138,9 @@ function getPathnameFromTab(tab: ActiveTab): string {
   return tabPathMap[tab] || "/";
 }
 
-// Helper function to resolve dynamic API URL when hosted on a third-party domain (like Vercel)
+// Helper function to resolve API URLs. Since the frontend and backend are hosted on the same origin (both on Vercel and locally), relative paths work perfectly.
 const getApiUrl = (path: string): string => {
-  const hostname = window.location.hostname;
-  if (
-    hostname === "localhost" || 
-    hostname === "127.0.0.1" || 
-    hostname.endsWith(".run.app")
-  ) {
-    return path;
-  }
-  return `https://ais-pre-5qtlktgr6euwd24sofeefo-82296584552.us-east1.run.app${path}`;
+  return path;
 };
 
 export default function App() {

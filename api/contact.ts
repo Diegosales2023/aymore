@@ -1,4 +1,6 @@
 import nodemailer from "nodemailer";
+import fs from "fs";
+import path from "path";
 
 export default async function handler(req: any, res: any) {
   // Enable CORS
@@ -34,6 +36,27 @@ export default async function handler(req: any, res: any) {
       message: message || "",
       created_at: new Date().toISOString()
     };
+
+    // Save lead to local backup in /tmp
+    const BACKUP_FILE = path.join("/tmp", "leads_backup.json");
+    try {
+      let leads = [];
+      if (fs.existsSync(BACKUP_FILE)) {
+        const fileContent = fs.readFileSync(BACKUP_FILE, "utf-8");
+        try {
+          leads = JSON.parse(fileContent || "[]");
+          if (!Array.isArray(leads)) {
+            leads = [];
+          }
+        } catch (e) {
+          leads = [];
+        }
+      }
+      leads.unshift(lead);
+      fs.writeFileSync(BACKUP_FILE, JSON.stringify(leads, null, 2), "utf-8");
+    } catch (fsErr) {
+      console.warn("Vercel Backup: Could not write to /tmp/leads_backup.json", fsErr);
+    }
 
     // Send email dispatch to owner's address (atendimento@centralwebaymore.com)
     const recipient = "atendimento@centralwebaymore.com";
