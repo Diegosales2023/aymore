@@ -2102,14 +2102,20 @@ NOTIFY pgrst, 'reload schema';`,
                         }
                         const errorMsg = result.details 
                           ? `${result.error} [Detalhes: ${result.details}]` 
-                          : (result.error || "Erro ao salvar no Supabase");
+                          : (result.error || "Erro ao salvar no servidor");
                         throw new Error(errorMsg);
                       }
                       
                       setIsSubmittingContact(false);
                       setContactSubmitSuccess(true);
                       
-                      if (result.savedLocally) {
+                      if (supabaseStatus?.disabled) {
+                        setIsSavedLocally(false);
+                        setToast({
+                          message: "Formulário enviado com sucesso!",
+                          type: "success"
+                        });
+                      } else if (result.savedLocally) {
                         setIsSavedLocally(true);
                         if (result.error) {
                           setContactSubmitError(result.error);
@@ -2124,16 +2130,16 @@ NOTIFY pgrst, 'reload schema';`,
                       } else {
                         setIsSavedLocally(false);
                         setToast({
-                          message: "Formulário enviado e salvo no Supabase com sucesso!",
+                          message: "Formulário enviado e salvo com sucesso!",
                           type: "success"
                         });
                       }
                     } catch (error: any) {
                       console.error("Erro ao enviar formulário:", error);
                       setIsSubmittingContact(false);
-                      setContactSubmitError(error.message || "Erro desconhecido ao salvar no Supabase.");
+                      setContactSubmitError(error.message || "Erro desconhecido ao processar sua solicitação.");
                       setToast({
-                        message: `Erro ao salvar no Supabase: ${error.message || "Tente novamente."}`,
+                        message: `Erro ao enviar: ${error.message || "Tente novamente."}`,
                         type: "error"
                       });
                     }
@@ -2169,7 +2175,7 @@ NOTIFY pgrst, 'reload schema';`,
                     <div className="p-3 bg-red-50 border border-red-200 text-red-900 rounded-lg text-xs leading-relaxed space-y-1">
                       <div className="flex items-center gap-1.5 font-bold text-red-700">
                         <AlertTriangle className="w-4 h-4 shrink-0" />
-                        <span>Ops! Erro ao Salvar no Supabase</span>
+                        <span>{supabaseStatus?.disabled ? "Ops! Erro ao Enviar Solicitação" : "Ops! Erro ao Salvar no Supabase"}</span>
                       </div>
                       <p className="text-[11px] font-medium">{contactSubmitError}</p>
                       
@@ -2178,7 +2184,7 @@ NOTIFY pgrst, 'reload schema';`,
                           <p className="font-bold text-amber-900 mb-1">💡 Instruções específicas para resolver:</p>
                           {contactSubmitHint}
                         </div>
-                      ) : (
+                      ) : !supabaseStatus?.disabled ? (
                         <div className="text-[10px] text-zinc-600 mt-1.5 border-t border-red-100 pt-1.5 space-y-1">
                           <p>💡 <strong>Como resolver rapidamente:</strong></p>
                           <ol className="list-decimal pl-4 space-y-0.5">
@@ -2187,6 +2193,10 @@ NOTIFY pgrst, 'reload schema';`,
                             <li>Acesse o painel do seu <strong>Supabase</strong> &gt; <strong>SQL Editor</strong> &gt; cole o código e clique em <strong>Run</strong>.</li>
                             <li>Isso garante que a tabela <code className="bg-red-100 px-1 rounded">contatos</code> exista com permissão de gravação!</li>
                           </ol>
+                        </div>
+                      ) : (
+                        <div className="text-[10px] text-zinc-600 mt-1.5 border-t border-red-100 pt-1.5 text-left">
+                          <p>💡 Por favor, verifique se todos os dados estão corretos ou tente novamente mais tarde.</p>
                         </div>
                       )}
                     </div>
