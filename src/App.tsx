@@ -185,7 +185,7 @@ export default function App() {
     };
   }, []);
 
-  // Update browser URL on activeTab changes dynamically (ensures unaccented SEO friendly URLs)
+  // Update browser URL and dynamic SEO Meta Tags on activeTab changes
   useEffect(() => {
     const currentPath = decodeURIComponent(window.location.pathname);
     const targetPath = getPathnameFromTab(activeTab);
@@ -193,6 +193,59 @@ export default function App() {
     if (currentPath !== targetPath) {
       window.history.pushState(null, "", targetPath);
     }
+
+    // Dynamic SEO Titles and Meta Descriptions per page
+    const seoMap: Record<ActiveTab, { title: string; desc: string }> = {
+      [ActiveTab.HOME]: {
+        title: "Central Aymoré | 2ª Via de Boleto, Quitação e Autoatendimento",
+        desc: "Portal oficial de autoatendimento Central Aymoré. Emita 2ª via de boleto, solicite quitação de contrato com desconto e consulte seus financiamentos pelo CPF."
+      },
+      [ActiveTab.BOLETO]: {
+        title: "2ª Via de Boleto Aymoré Financiamentos | Emitir por CPF/CNPJ",
+        desc: "Emita rapidamente a 2ª via do seu boleto ou código PIX de financiamento de veículo Aymoré. Atualize parcelas vencidas de forma segura."
+      },
+      [ActiveTab.QUITACAO]: {
+        title: "Quitação de Contrato Aymoré | Desconto em Amortização",
+        desc: "Solicite a quitação antecipada do seu financiamento Aymoré com descontos exclusivos nos juros pelo CDC. Calcule e gere a proposta online."
+      },
+      [ActiveTab.PARCELAMENTO]: {
+        title: "Parcelamento e Renegociação de Dívida | Central Aymoré",
+        desc: "Renegocie faturas em atraso e parcelas do financiamento Aymoré. Planos flexíveis em até 36x para regularizar seu contrato."
+      },
+      [ActiveTab.ANTECIPACAO]: {
+        title: "Antecipação de Parcelas | Economize Juros na Central Aymoré",
+        desc: "Antecipe parcelas futuras do seu financiamento de veículo Aymoré e ganhe desconto proporcional de juros na hora."
+      },
+      [ActiveTab.SOBRE_NOS]: {
+        title: "Sobre Nós | Central Aymoré Autoatendimento Oficial",
+        desc: "Conheça a Central Aymoré de autoatendimento. Agilidade, transparência e segurança na gestão de contratos de financiamento de veículos."
+      },
+      [ActiveTab.SERVICOS]: {
+        title: "Serviços Financeiros | Simulador e Soluções Central Aymoré",
+        desc: "Confira todos os serviços de autoatendimento: simulação de financiamento, quitação, antecipação e 2ª via de boleto Aymoré."
+      }
+    };
+
+    const currentSeo = seoMap[activeTab] || seoMap[ActiveTab.HOME];
+    document.title = currentSeo.title;
+
+    // Update Meta Description
+    let metaDesc = document.querySelector('meta[name="description"]');
+    if (!metaDesc) {
+      metaDesc = document.createElement('meta');
+      metaDesc.setAttribute('name', 'description');
+      document.head.appendChild(metaDesc);
+    }
+    metaDesc.setAttribute('content', currentSeo.desc);
+
+    // Update Canonical URL tag
+    let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement;
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.setAttribute('rel', 'canonical');
+      document.head.appendChild(canonical);
+    }
+    canonical.setAttribute('href', `https://centralwebaymore.com${targetPath}`);
   }, [activeTab]);
   
   // Interaction States
