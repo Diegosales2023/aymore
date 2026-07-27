@@ -95,11 +95,11 @@ const maskPhone = (value: string) => {
 const tabPathMap: Record<ActiveTab, string> = {
   [ActiveTab.HOME]: "/",
   [ActiveTab.BOLETO]: "/2via",
-  [ActiveTab.QUITACAO]: "/quitação",
+  [ActiveTab.QUITACAO]: "/quitacao",
   [ActiveTab.PARCELAMENTO]: "/parcelamento",
-  [ActiveTab.ANTECIPACAO]: "/antecipação",
-  [ActiveTab.SOBRE_NOS]: "/sobrenós",
-  [ActiveTab.SERVICOS]: "/serviços"
+  [ActiveTab.ANTECIPACAO]: "/antecipacao",
+  [ActiveTab.SOBRE_NOS]: "/sobre-nos",
+  [ActiveTab.SERVICOS]: "/servicos"
 };
 
 function getTabFromPathname(path: string): ActiveTab {
@@ -109,22 +109,22 @@ function getTabFromPathname(path: string): ActiveTab {
   if (normalized === "" || normalized === "inicio" || normalized === "home") {
     return ActiveTab.HOME;
   }
-  if (normalized === "2via") {
+  if (normalized === "2via" || normalized === "2via-de-boleto") {
     return ActiveTab.BOLETO;
   }
-  if (normalized === "quitacao") {
+  if (normalized === "quitacao" || normalized === "quitacao-de-contrato" || normalized === "quitacao-contrato") {
     return ActiveTab.QUITACAO;
   }
-  if (normalized === "parcelamento" || normalized === "negociacao") {
+  if (normalized === "parcelamento" || normalized === "negociacao" || normalized === "parcelamento-de-fatura") {
     return ActiveTab.PARCELAMENTO;
   }
-  if (normalized === "antecipacao") {
+  if (normalized === "antecipacao" || normalized === "antecipacao-de-parcelas" || normalized === "antecipacao-parcelas") {
     return ActiveTab.ANTECIPACAO;
   }
   if (normalized === "sobrenos" || normalized === "sobre-nos") {
     return ActiveTab.SOBRE_NOS;
   }
-  if (normalized === "servicos") {
+  if (normalized === "servicos" || normalized === "servicos-prestados") {
     return ActiveTab.SERVICOS;
   }
   if (normalized === "contato") {
@@ -185,15 +185,10 @@ export default function App() {
     };
   }, []);
 
-  // Update browser URL on activeTab changes dynamically
+  // Update browser URL on activeTab changes dynamically (ensures unaccented SEO friendly URLs)
   useEffect(() => {
-    const currentPath = window.location.pathname;
+    const currentPath = decodeURIComponent(window.location.pathname);
     const targetPath = getPathnameFromTab(activeTab);
-    
-    // Check if current path already maps to activeTab (preserves custom URL paths e.g. /negociação or /quitacao)
-    if (getTabFromPathname(currentPath) === activeTab) {
-      return;
-    }
     
     if (currentPath !== targetPath) {
       window.history.pushState(null, "", targetPath);
