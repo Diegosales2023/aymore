@@ -10,7 +10,10 @@ export enum ActiveTab {
   PARCELAMENTO = "parcelamento",
   ANTECIPACAO = "antecipacao",
   SOBRE_NOS = "sobre-nos",
-  SERVICOS = "servicos"
+  SERVICOS = "servicos",
+  ACORDO = "solicitar-acordo",
+  SIMULAR_PARCELAMENTO = "simular-parcelamento",
+  RENEGOCIACAO = "renegociacao-online"
 }
 
 export interface Contract {

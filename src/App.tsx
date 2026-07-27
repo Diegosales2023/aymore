@@ -33,6 +33,8 @@ import {
   Download,
   Trash2,
   RefreshCw,
+  Handshake,
+  Calculator,
   X
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
@@ -96,6 +98,9 @@ const tabPathMap: Record<ActiveTab, string> = {
   [ActiveTab.HOME]: "/",
   [ActiveTab.BOLETO]: "/2via",
   [ActiveTab.QUITACAO]: "/quitacao",
+  [ActiveTab.ACORDO]: "/solicitar-acordo",
+  [ActiveTab.SIMULAR_PARCELAMENTO]: "/simular-parcelamento",
+  [ActiveTab.RENEGOCIACAO]: "/renegociacao-online",
   [ActiveTab.PARCELAMENTO]: "/parcelamento",
   [ActiveTab.ANTECIPACAO]: "/antecipacao",
   [ActiveTab.SOBRE_NOS]: "/sobre-nos",
@@ -114,6 +119,15 @@ function getTabFromPathname(path: string): ActiveTab {
   }
   if (normalized === "quitacao" || normalized === "quitacao-de-contrato" || normalized === "quitacao-contrato") {
     return ActiveTab.QUITACAO;
+  }
+  if (normalized === "solicitar-acordo" || normalized === "acordo" || normalized === "solicitaracordo") {
+    return ActiveTab.ACORDO;
+  }
+  if (normalized === "simular-parcelamento" || normalized === "simularparcelamento" || normalized === "simulador-parcelamento") {
+    return ActiveTab.SIMULAR_PARCELAMENTO;
+  }
+  if (normalized === "renegociacao-online" || normalized === "renegociacao" || normalized === "renegociacaoonline") {
+    return ActiveTab.RENEGOCIACAO;
   }
   if (normalized === "parcelamento" || normalized === "negociacao" || normalized === "parcelamento-de-fatura") {
     return ActiveTab.PARCELAMENTO;
@@ -207,6 +221,18 @@ export default function App() {
       [ActiveTab.QUITACAO]: {
         title: "Quitação de Contrato Aymoré | Desconto em Amortização",
         desc: "Solicite a quitação antecipada do seu financiamento Aymoré com descontos exclusivos nos juros pelo CDC. Calcule e gere a proposta online."
+      },
+      [ActiveTab.ACORDO]: {
+        title: "Solicitar Acordo Financeiro | Central Aymoré Dívidas e Quitação",
+        desc: "Solicite um acordo oficial para regularizar seu contrato Aymoré com redução de encargos e juros. Proposta rápida e segura."
+      },
+      [ActiveTab.SIMULAR_PARCELAMENTO]: {
+        title: "Simular Parcelamento de Dívida | Calculadora Aymoré Financiamentos",
+        desc: "Simule o parcelamento do seu contrato ou faturas Aymoré. Escolha o número de parcelas, simule valores e renegocie online."
+      },
+      [ActiveTab.RENEGOCIACAO]: {
+        title: "Renegociação Online Aymoré | Descontos Especiais em Contratos",
+        desc: "Renegocie seu contrato de financiamento de veículo Aymoré online. Descontos exclusivos em parcelas em atraso com aprovação imediata."
       },
       [ActiveTab.PARCELAMENTO]: {
         title: "Parcelamento e Renegociação de Dívida | Central Aymoré",
@@ -572,6 +598,9 @@ export default function App() {
                 { id: ActiveTab.HOME, label: "Início", icon: Info },
                 { id: ActiveTab.BOLETO, label: "2ª Via de Boleto", icon: FileText },
                 { id: ActiveTab.QUITACAO, label: "Quitação de Contrato", icon: CheckCircle },
+                { id: ActiveTab.ACORDO, label: "Solicitar Acordo", icon: Handshake },
+                { id: ActiveTab.SIMULAR_PARCELAMENTO, label: "Simular Parcelamento", icon: Calculator },
+                { id: ActiveTab.RENEGOCIACAO, label: "Renegociação Online", icon: RefreshCw },
                 { id: ActiveTab.PARCELAMENTO, label: "Parcelamento", icon: CreditCard },
                 { id: ActiveTab.ANTECIPACAO, label: "Antecipação de Parcelas", icon: TrendingDown },
                 { id: ActiveTab.SOBRE_NOS, label: "Sobre Nós", icon: Info },
@@ -922,6 +951,290 @@ export default function App() {
                   </div>
                 </div>
 
+              </div>
+            )}
+
+            {/* ----------------- TAB: SOLICITAR ACORDO ----------------- */}
+            {activeTab === ActiveTab.ACORDO && (
+              <div className="space-y-8 max-w-4xl mx-auto">
+                <div className="bg-white border border-zinc-200 rounded-2xl p-6 md:p-10 space-y-8 shadow-sm">
+                  <div className="text-center space-y-3">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-50 text-[#ec0000] rounded-full text-xs font-bold uppercase tracking-wider">
+                      <ShieldAlert className="w-3.5 h-3.5" /> Acordo de Regularização Oficial
+                    </span>
+                    <h2 className="text-2xl md:text-3xl font-black text-zinc-900 tracking-tight">
+                      Solicitar Acordo de Dívida e Quitação
+                    </h2>
+                    <p className="text-xs md:text-sm text-zinc-500 max-w-xl mx-auto leading-relaxed">
+                      Regularize débitos pendentes com descontos de até 85% sobre juros moratórios e encargos. Escolha a condição ideal para fechar seu acordo com garantia e segurança.
+                    </p>
+                  </div>
+
+                  {/* THREE AGREEMENT OPTIONS */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-gradient-to-b from-red-50/50 to-white border-2 border-red-500 rounded-xl p-5 space-y-3 relative overflow-hidden">
+                      <span className="absolute top-2 right-2 bg-[#ec0000] text-white text-[9px] font-black uppercase px-2 py-0.5 rounded">
+                        Maior Desconto
+                      </span>
+                      <h3 className="font-extrabold text-sm text-zinc-900">Quitação à Vista</h3>
+                      <p className="text-xs text-zinc-500 leading-relaxed">
+                        Pague o saldo devedor de uma só vez com até <strong>85% de abatimento</strong> de juros e mora acumulados.
+                      </p>
+                      <div className="pt-2">
+                        <span className="text-xl font-black text-[#ec0000]">Até 85% OFF</span>
+                      </div>
+                    </div>
+
+                    <div className="bg-white border border-zinc-200 rounded-xl p-5 space-y-3 hover:border-red-300 transition-all">
+                      <h3 className="font-extrabold text-sm text-zinc-900">Acordo Parcelado</h3>
+                      <p className="text-xs text-zinc-500 leading-relaxed">
+                        Consolide suas pendências em parcelas fixas que caibam no seu orçamento, com parcelamento em até 36x.
+                      </p>
+                      <div className="pt-2">
+                        <span className="text-base font-bold text-zinc-800">Até 36x Fixas</span>
+                      </div>
+                    </div>
+
+                    <div className="bg-white border border-zinc-200 rounded-xl p-5 space-y-3 hover:border-red-300 transition-all">
+                      <h3 className="font-extrabold text-sm text-zinc-900">Isenção de Encargos</h3>
+                      <p className="text-xs text-zinc-500 leading-relaxed">
+                        Pague a parcela em atraso sem cobrança de honorários adicionais e retenha o nome limpo no SPC/Serasa.
+                      </p>
+                      <div className="pt-2">
+                        <span className="text-base font-bold text-emerald-600">0% de Multa Adicional</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* INFORMATIONAL & DIRECT ACTION BOX */}
+                  <div className="bg-zinc-950 text-white rounded-xl p-6 md:p-8 space-y-6">
+                    <div className="space-y-2">
+                      <h4 className="text-lg font-black text-white">Como Funciona a Solicitação do Acordo?</h4>
+                      <p className="text-xs text-zinc-400 leading-relaxed">
+                        1. Preencha seus dados de contato no formulário.<br/>
+                        2. Nossa equipe do setor de regularização localizará seu contrato e calculará o maior desconto disponível.<br/>
+                        3. Você receberá o termo de acordo com o boleto oficial em seu e-mail e WhatsApp verificado.
+                      </p>
+                    </div>
+
+                    <div className="pt-2 border-t border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+                      <div className="text-xs text-zinc-400">
+                        <span>Atendimento humano de Segunda a Sexta das 8h às 20h e Sábados das 8h às 14h.</span>
+                      </div>
+                      <button
+                        onClick={() => openContactForm("Solicitação de Acordo")}
+                        className="w-full sm:w-auto bg-[#ec0000] hover:bg-[#cc0000] text-white font-extrabold py-3.5 px-8 rounded-lg text-xs uppercase tracking-wider shadow-lg transition-all cursor-pointer border-0 shrink-0"
+                      >
+                        Solicitar Proposta de Acordo
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ----------------- TAB: SIMULAR PARCELAMENTO ----------------- */}
+            {activeTab === ActiveTab.SIMULAR_PARCELAMENTO && (
+              <div className="space-y-8 max-w-5xl mx-auto">
+                <div className="bg-white border border-zinc-200 rounded-2xl p-6 md:p-10 space-y-8 shadow-sm">
+                  <div className="border-b border-zinc-100 pb-4 space-y-2">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-50 text-[#ec0000] rounded-full text-xs font-bold uppercase tracking-wider">
+                      <Sliders className="w-3.5 h-3.5" /> Ferramenta de Simulação
+                    </span>
+                    <h2 className="text-2xl md:text-3xl font-black text-zinc-900">
+                      Simulador de Parcelamento de Fatura & Dívida
+                    </h2>
+                    <p className="text-xs md:text-sm text-zinc-500">
+                      Calcule de forma transparente o valor das parcelas e veja a melhor condição para reprogramar seu financiamento Aymoré.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                    {/* SLIDERS & CONTROLS */}
+                    <div className="lg:col-span-7 space-y-6 bg-zinc-50/80 p-6 rounded-xl border border-zinc-200">
+                      
+                      {/* Amount Slider */}
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-baseline text-xs">
+                          <label className="font-bold text-zinc-700">Valor do Saldo a Parcelar:</label>
+                          <span className="font-mono font-bold text-[#ec0000] text-base">
+                            R$ {simuladorAssetValue.toLocaleString("pt-BR", { minimumFractionDigits: 0 })}
+                          </span>
+                        </div>
+                        <input 
+                          type="range" 
+                          min={1000} 
+                          max={100000} 
+                          step={1000}
+                          value={simuladorAssetValue}
+                          onChange={(e) => setSimuladorAssetValue(Number(e.target.value))}
+                          className="w-full accent-[#ec0000] cursor-pointer h-2 bg-zinc-200 rounded-lg appearance-none"
+                        />
+                        <div className="flex justify-between text-[10px] text-zinc-400 font-mono">
+                          <span>R$ 1.000</span>
+                          <span>R$ 100.000</span>
+                        </div>
+                      </div>
+
+                      {/* Terms Option Buttons */}
+                      <div className="space-y-2">
+                        <label className="block text-xs font-bold text-zinc-700 mb-1.5">Escolha o Prazo de Parcelamento:</label>
+                        <div className="grid grid-cols-5 gap-2">
+                          {[6, 12, 24, 36, 48].map((t) => (
+                            <button
+                              key={t}
+                              onClick={() => setSimuladorInstallmentsCount(t)}
+                              className={`py-2.5 px-2 rounded-lg text-xs font-bold transition-all border ${
+                                simuladorInstallmentsCount === t 
+                                  ? "border-[#ec0000] bg-[#ec0000] text-white shadow" 
+                                  : "border-zinc-200 bg-white hover:bg-zinc-100 text-zinc-700"
+                              }`}
+                            >
+                              {t}x
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Entrada Slider */}
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-baseline text-xs">
+                          <label className="font-bold text-zinc-700">Valor da Entrada Inicial:</label>
+                          <span className="font-mono font-bold text-zinc-900 text-sm">
+                            R$ {simuladorDownPayment.toLocaleString("pt-BR", { minimumFractionDigits: 0 })}
+                          </span>
+                        </div>
+                        <input 
+                          type="range" 
+                          min={0} 
+                          max={Math.max(0, simuladorAssetValue - 500)} 
+                          step={500}
+                          value={simuladorDownPayment}
+                          onChange={(e) => setSimuladorDownPayment(Number(e.target.value))}
+                          className="w-full accent-[#ec0000] cursor-pointer h-2 bg-zinc-200 rounded-lg appearance-none"
+                        />
+                        <div className="flex justify-between text-[10px] text-zinc-400 font-mono">
+                          <span>Sem entrada (R$ 0)</span>
+                          <span>Até R$ {(simuladorAssetValue - 500).toLocaleString("pt-BR")}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* CALCULATION RESULTS DISPLAY */}
+                    <div className="lg:col-span-5 bg-zinc-950 text-white rounded-2xl p-6 space-y-6 border border-zinc-900 relative overflow-hidden">
+                      <div className="absolute -top-10 -right-10 w-40 h-40 bg-red-600/10 rounded-full blur-2xl pointer-events-none" />
+                      
+                      <h4 className="font-extrabold text-sm border-b border-zinc-800 pb-3 text-white">Resultado da Simulação</h4>
+
+                      {(() => {
+                        const calcs = calcSimulator();
+                        return (
+                          <div className="space-y-4">
+                            <div className="bg-white/5 p-4 rounded-xl border border-white/10 space-y-1">
+                              <span className="block text-[10px] uppercase text-zinc-400 font-bold">Valor Estimado por Parcela:</span>
+                              <span className="text-3xl font-black text-[#ec0000]">
+                                R$ {calcs.installment.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </span>
+                              <span className="block text-[10px] text-zinc-400">Em {simuladorInstallmentsCount} parcelas mensais e fixas</span>
+                            </div>
+
+                            <div className="space-y-2.5 text-xs text-zinc-300">
+                              <div className="flex justify-between">
+                                <span className="text-zinc-400">Valor do Crédito:</span>
+                                <span className="font-bold text-white">R$ {calcs.principal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-zinc-400">Entrada Informada:</span>
+                                <span className="font-bold text-white">R$ {simuladorDownPayment.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-zinc-400">Taxa de Juros Estimada:</span>
+                                <span className="font-bold text-emerald-400">1.69% ao mês</span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })()}
+
+                      <div className="pt-2">
+                        <button
+                          onClick={() => openContactForm("Simulação de Parcelamento")}
+                          className="w-full bg-[#ec0000] hover:bg-[#cc0000] text-white font-extrabold py-3.5 rounded-lg text-xs uppercase tracking-wider shadow-md transition-all cursor-pointer border-0"
+                        >
+                          Contratar Este Parcelamento
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ----------------- TAB: RENEGOCIAÇÃO ONLINE ----------------- */}
+            {activeTab === ActiveTab.RENEGOCIACAO && (
+              <div className="space-y-8 max-w-4xl mx-auto">
+                <div className="bg-white border border-zinc-200 rounded-2xl p-6 md:p-10 space-y-8 shadow-sm">
+                  <div className="text-center space-y-3">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-50 text-[#ec0000] rounded-full text-xs font-bold uppercase tracking-wider">
+                      <RefreshCw className="w-3.5 h-3.5" /> Portal de Renegociação
+                    </span>
+                    <h2 className="text-2xl md:text-3xl font-black text-zinc-900 tracking-tight">
+                      Renegociação Online de Contrato Aymoré
+                    </h2>
+                    <p className="text-xs md:text-sm text-zinc-500 max-w-xl mx-auto leading-relaxed">
+                      Regularize suas faturas em atraso sem sair de casa. Condições exclusivas de parcelamento e eliminação de multas em ambiente 100% digital e seguro.
+                    </p>
+                  </div>
+
+                  {/* RENEGOTIATION STEPS */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="bg-zinc-50 border border-zinc-200 p-5 rounded-xl space-y-2 relative">
+                      <span className="w-7 h-7 rounded-full bg-[#ec0000] text-white font-extrabold text-xs flex items-center justify-center">1</span>
+                      <h3 className="font-extrabold text-sm text-zinc-900">1. Identificação</h3>
+                      <p className="text-xs text-zinc-500 leading-relaxed">
+                        Informe seu CPF ou número de contrato para consultar as propostas pré-aprovadas.
+                      </p>
+                    </div>
+
+                    <div className="bg-zinc-50 border border-zinc-200 p-5 rounded-xl space-y-2 relative">
+                      <span className="w-7 h-7 rounded-full bg-[#ec0000] text-white font-extrabold text-xs flex items-center justify-center">2</span>
+                      <h3 className="font-extrabold text-sm text-zinc-900">2. Escolha do Plano</h3>
+                      <p className="text-xs text-zinc-500 leading-relaxed">
+                        Selecione entre quitação integral com desconto ou divida a pendência em parcelas fixas.
+                      </p>
+                    </div>
+
+                    <div className="bg-zinc-50 border border-zinc-200 p-5 rounded-xl space-y-2 relative">
+                      <span className="w-7 h-7 rounded-full bg-[#ec0000] text-white font-extrabold text-xs flex items-center justify-center">3</span>
+                      <h3 className="font-extrabold text-sm text-zinc-900">3. Conclusão</h3>
+                      <p className="text-xs text-zinc-500 leading-relaxed">
+                        Receba o boleto de entrada por e-mail ou WhatsApp e retire os apontamentos dos órgãos de proteção ao crédito.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* RENEGOTIATION BENEFIT HIGHLIGHTS */}
+                  <div className="bg-emerald-50/60 border border-emerald-200/80 rounded-xl p-6 space-y-3">
+                    <h4 className="font-extrabold text-sm text-emerald-950 flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-emerald-600" /> Benefícios da Renegociação Online:
+                    </h4>
+                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-emerald-900">
+                      <li className="flex items-center gap-2">✓ Retirada de restrição em até 5 dias úteis após o pagamento da 1ª parcela</li>
+                      <li className="flex items-center gap-2">✓ Desconto de até 80% nos juros moratórios acumulados</li>
+                      <li className="flex items-center gap-2">✓ Opções de pagamento via PIX com baixa instantânea</li>
+                      <li className="flex items-center gap-2">✓ Atendimento sem intermediários e sem taxa de contrato</li>
+                    </ul>
+                  </div>
+
+                  <div className="text-center pt-2">
+                    <button
+                      onClick={() => openContactForm("Renegociação Online")}
+                      className="bg-[#ec0000] hover:bg-[#cc0000] hover:scale-[1.02] active:scale-[0.98] transition-all text-white font-black py-4 px-10 rounded-full text-xs uppercase tracking-wider shadow-lg inline-flex items-center gap-2 cursor-pointer border-0"
+                    >
+                      Iniciar Renegociação Online <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
 
