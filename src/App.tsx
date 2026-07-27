@@ -53,6 +53,9 @@ const demoClientData = generateClientData(DEMO_CPF_CNPJ);
 
 const CONTACT_SUBJECTS = [
   "Atendimento Geral",
+  "Solicitação de Acordo",
+  "Simulação de Parcelamento",
+  "Renegociação Online",
   "2ª Via de Boleto / PIX",
   "Quitação de Contrato",
   "Parcelamento / Renegociação",
