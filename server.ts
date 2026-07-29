@@ -236,6 +236,33 @@ async function startServer() {
     }
   });
 
+  // Explicit SEO routes for sitemap.xml and robots.txt
+  app.get("/sitemap.xml", (req, res) => {
+    res.setHeader("Content-Type", "application/xml; charset=utf-8");
+    const sitemapPath = path.join(process.cwd(), "public", "sitemap.xml");
+    if (fs.existsSync(sitemapPath)) {
+      return res.sendFile(sitemapPath);
+    }
+    const distSitemap = path.join(process.cwd(), "dist", "sitemap.xml");
+    if (fs.existsSync(distSitemap)) {
+      return res.sendFile(distSitemap);
+    }
+    return res.status(404).send("<error>Sitemap not found</error>");
+  });
+
+  app.get("/robots.txt", (req, res) => {
+    res.setHeader("Content-Type", "text/plain; charset=utf-8");
+    const robotsPath = path.join(process.cwd(), "public", "robots.txt");
+    if (fs.existsSync(robotsPath)) {
+      return res.sendFile(robotsPath);
+    }
+    const distRobots = path.join(process.cwd(), "dist", "robots.txt");
+    if (fs.existsSync(distRobots)) {
+      return res.sendFile(distRobots);
+    }
+    return res.status(404).send("User-agent: *\nAllow: /\nSitemap: https://centralwebaymore.com/sitemap.xml");
+  });
+
   // Vite middleware setup
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
