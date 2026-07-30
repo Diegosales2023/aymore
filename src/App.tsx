@@ -35,6 +35,7 @@ import {
   RefreshCw,
   Handshake,
   Calculator,
+  MessageCircle,
   X
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
@@ -48,6 +49,7 @@ import {
 } from "./data";
 
 const WHATSAPP_URL = "https://api.whatsapp.com/send?phone=5511966689764&text=Solicito%20Atendimento";
+const WHATSAPP_FLOATING_URL = "https://api.whatsapp.com/send?phone=5511975486623&text=Suporte%20Aymoré";
 const DEMO_CPF_CNPJ = "123.456.789-00";
 const demoClientData = generateClientData(DEMO_CPF_CNPJ);
 
@@ -2699,6 +2701,23 @@ NOTIFY pgrst, 'reload schema';`,
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* FLOATING WHATSAPP BUTTON */}
+      <a
+        href={WHATSAPP_FLOATING_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-6 right-6 z-40 bg-[#25D366] hover:bg-[#20ba57] text-white p-3.5 md:p-4 rounded-full shadow-2xl flex items-center justify-center gap-2 transition-all transform hover:scale-110 active:scale-95 group border border-emerald-400/30"
+        title="Suporte Aymoré via WhatsApp"
+        aria-label="Atendimento via WhatsApp"
+      >
+        <span className="hidden sm:inline-block max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 ease-in-out whitespace-nowrap text-xs font-bold pl-1 pr-1">
+          Suporte Aymoré
+        </span>
+        <MessageCircle className="w-6 h-6 md:w-7 md:h-7 fill-current" />
+        <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 border-2 border-white rounded-full animate-ping" />
+        <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 border-2 border-white rounded-full" />
+      </a>
 
     </div>
   );
