@@ -276,7 +276,14 @@ export default function App() {
       canonical.setAttribute('rel', 'canonical');
       document.head.appendChild(canonical);
     }
-    canonical.setAttribute('href', `https://centralwebaymore.com${targetPath}`);
+    const fullCanonicalUrl = `https://centralwebaymore.com${targetPath === "/" ? "/" : targetPath}`;
+    canonical.setAttribute('href', fullCanonicalUrl);
+
+    let ogUrl = document.querySelector('meta[property="og:url"]');
+    if (ogUrl) ogUrl.setAttribute('content', fullCanonicalUrl);
+
+    let twUrl = document.querySelector('meta[name="twitter:url"]');
+    if (twUrl) twUrl.setAttribute('content', fullCanonicalUrl);
   }, [activeTab]);
   
   // Interaction States

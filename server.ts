@@ -236,6 +236,21 @@ async function startServer() {
     }
   });
 
+  // Redirect www.centralwebaymore.com to non-www and strip trailing slashes (301 Permanent Redirect)
+  app.use((req, res, next) => {
+    const host = req.headers.host || "";
+    if (host.startsWith("www.")) {
+      const nonWwwHost = host.replace(/^www\./, "");
+      return res.redirect(301, `https://${nonWwwHost}${req.originalUrl}`);
+    }
+    if (req.path.length > 1 && req.path.endsWith("/")) {
+      const query = req.url.slice(req.path.length);
+      const safePath = req.path.slice(0, -1);
+      return res.redirect(301, safePath + query);
+    }
+    next();
+  });
+
   // Explicit SEO routes for sitemap.xml and robots.txt
   app.get("/sitemap.xml", (req, res) => {
     res.setHeader("Content-Type", "application/xml; charset=utf-8");
@@ -263,6 +278,49 @@ async function startServer() {
     return res.status(404).send("User-agent: *\nAllow: /\nSitemap: https://centralwebaymore.com/sitemap.xml");
   });
 
+  const seoRouteMap: Record<string, { title: string; desc: string }> = {
+    "/": {
+      title: "Central Aymoré | 2ª Via de Boleto, Quitação e Autoatendimento",
+      desc: "Portal oficial de autoatendimento Central Aymoré. Emita 2ª via de boleto, solicite quitação de contrato com desconto e consulte seus financiamentos pelo CPF."
+    },
+    "/2via": {
+      title: "2ª Via de Boleto Aymoré Financiamentos | Emitir por CPF/CNPJ",
+      desc: "Emita rapidamente a 2ª via do seu boleto ou código PIX de financiamento de veículo Aymoré. Atualize parcelas vencidas de forma segura."
+    },
+    "/quitacao": {
+      title: "Quitação de Contrato Aymoré | Desconto em Amortização",
+      desc: "Solicite a quitação antecipada do seu financiamento Aymoré com descontos exclusivos nos juros pelo CDC. Calcule e gere a proposta online."
+    },
+    "/solicitar-acordo": {
+      title: "Solicitar Acordo Financeiro | Central Aymoré Dívidas e Quitação",
+      desc: "Solicite um acordo oficial para regularizar seu contrato Aymoré com redução de encargos e juros. Proposta rápida e segura."
+    },
+    "/simular-parcelamento": {
+      title: "Simular Parcelamento de Dívida | Calculadora Aymoré Financiamentos",
+      desc: "Simule o parcelamento do seu contrato ou faturas Aymoré. Escolha o número de parcelas, simule valores e renegocie online."
+    },
+    "/renegociacao-online": {
+      title: "Renegociação Online Aymoré | Descontos Especiais em Contratos",
+      desc: "Renegocie seu contrato de financiamento de veículo Aymoré online. Descontos exclusivos em parcelas em atraso com aprovação imediata."
+    },
+    "/parcelamento": {
+      title: "Parcelamento e Renegociação de Dívida | Central Aymoré",
+      desc: "Renegocie faturas em atraso e parcelas do financiamento Aymoré. Planos flexíveis em até 36x para regularizar seu contrato."
+    },
+    "/antecipacao": {
+      title: "Antecipação de Parcelas | Economize Juros na Central Aymoré",
+      desc: "Antecipe parcelas futuras do seu financiamento de veículo Aymoré e ganhe desconto proporcional de juros na hora."
+    },
+    "/sobre-nos": {
+      title: "Sobre Nós | Central Aymoré Autoatendimento Oficial",
+      desc: "Conheça a Central Aymoré de autoatendimento. Agilidade, transparência e segurança na gestão de contratos de financiamento de veículos."
+    },
+    "/servicos": {
+      title: "Serviços Financeiros | Simulador e Soluções Central Aymoré",
+      desc: "Confira todos os serviços de autoatendimento: simulação de financiamento, quitação, antecipação e 2ª via de boleto Aymoré."
+    }
+  };
+
   // Vite middleware setup
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
@@ -272,9 +330,29 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), "dist");
-    app.use(express.static(distPath));
+    app.use(express.static(distPath, { index: false }));
     app.get("*", (req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
+      const htmlPath = path.join(distPath, "index.html");
+      if (fs.existsSync(htmlPath)) {
+        let html = fs.readFileSync(htmlPath, "utf-8");
+        const cleanPath = req.path === "/" ? "/" : req.path.replace(/\/+$/, "");
+        const seo = seoRouteMap[cleanPath] || seoRouteMap["/"];
+        const canonicalUrl = `https://centralwebaymore.com${cleanPath}`;
+
+        html = html.replace(/<title>.*?<\/title>/gi, `<title>${seo.title}</title>`);
+        html = html.replace(/<meta name="description" content=".*?"\s*\/?>/gi, `<meta name="description" content="${seo.desc}" />`);
+        html = html.replace(/<link rel="canonical" href=".*?"\s*\/?>/gi, `<link rel="canonical" href="${canonicalUrl}" />`);
+        html = html.replace(/<meta property="og:url" content=".*?"\s*\/?>/gi, `<meta property="og:url" content="${canonicalUrl}" />`);
+        html = html.replace(/<meta property="og:title" content=".*?"\s*\/?>/gi, `<meta property="og:title" content="${seo.title}" />`);
+        html = html.replace(/<meta property="og:description" content=".*?"\s*\/?>/gi, `<meta property="og:description" content="${seo.desc}" />`);
+        html = html.replace(/<meta name="twitter:url" content=".*?"\s*\/?>/gi, `<meta name="twitter:url" content="${canonicalUrl}" />`);
+        html = html.replace(/<meta name="twitter:title" content=".*?"\s*\/?>/gi, `<meta name="twitter:title" content="${seo.title}" />`);
+        html = html.replace(/<meta name="twitter:description" content=".*?"\s*\/?>/gi, `<meta name="twitter:description" content="${seo.desc}" />`);
+
+        res.setHeader("Content-Type", "text/html; charset=utf-8");
+        return res.send(html);
+      }
+      return res.sendFile(htmlPath);
     });
   }
 
