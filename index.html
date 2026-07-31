@@ -1,6 +1,68 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt-BR">
   <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- Title & SEO Metadata -->
+    <title>Aymoré Financiamentos | Central de Atendimento e 2ª Via de Boletos</title>
+    <meta name="description" content="Central Oficial de Atendimento e Negociação Aymoré Financiamentos. Emissão de 2ª via de boleto, quitação antecipada de contrato, renegociação de parcelas e suporte online." />
+    <meta name="keywords" content="aymore, aymoré financiamentos, 2 via boleto aymore, quitacao financiamento, renegociacao aymore, acordo aymore, central aymore" />
+    <meta name="author" content="Central Aymoré Financiamentos" />
+    <link rel="canonical" href="https://centralwebaymore.com/" />
+
+    <!-- Robots Directives for Bing & Search Engines -->
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="bingbot" content="index, follow, archive" />
+    <meta name="googlebot" content="index, follow" />
+
+    <!-- Open Graph / Facebook Meta Tags -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://centralwebaymore.com/" />
+    <meta property="og:title" content="Aymoré Financiamentos | Central de Atendimento e 2ª Via de Boletos" />
+    <meta property="og:description" content="Emita 2ª via de boleto, solicite quitação antecipada de financiamento de veículo ou renegocie parcelas em atraso via WhatsApp oficial." />
+    <meta property="og:site_name" content="Central Aymoré Financiamentos" />
+    <meta property="og:locale" content="pt_BR" />
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://centralwebaymore.com/" />
+    <meta name="twitter:title" content="Aymoré Financiamentos | Central de Atendimento" />
+    <meta name="twitter:description" content="Atendimento online para 2ª via de boleto, quitação e renegociação de parcelas Aymoré." />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Schema.org Structured Data (JSON-LD) for Bing Webmaster -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FinancialService",
+      "name": "Central Aymoré Financiamentos",
+      "url": "https://centralwebaymore.com/",
+      "logo": "https://centralwebaymore.com/favicon.svg",
+      "description": "Atendimento e renegociação de financiamento de veículos e empréstimos Aymoré Financiamentos.",
+      "telephone": "+55-11-97548-6623",
+      "address": {
+        "@type": "PostalAddress",
+        "addressCountry": "BR"
+      },
+      "openingHoursSpecification": {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": [
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday"
+        ],
+        "opens": "08:00",
+        "closes": "20:00"
+      }
+    }
+    </script>
+
     <!-- Google Tag Manager -->
     <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
     new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -8,6 +70,7 @@
     'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
     })(window,document,'script','dataLayer','GTM-N9B3XC86');</script>
     <!-- End Google Tag Manager -->
+
     <script>
       (function() {
         try {
@@ -33,7 +96,6 @@
         var OriginalWebSocket = window.WebSocket;
         if (OriginalWebSocket) {
           var InterceptedWebSocket = function(url, protocols) {
-            // Only intercept if it's explicitly a Vite HMR connection or local development WebSocket
             var isViteHmr = protocols === 'vite-hmr' || (typeof url === 'string' && (
               url.indexOf('localhost') !== -1 || 
               url.indexOf('127.0.0.1') !== -1 ||
@@ -66,11 +128,9 @@
               return mock;
             }
             
-            // For Supabase or any other actual service, return the original native WebSocket directly
             return new OriginalWebSocket(url, protocols);
           };
 
-          // Use a clean prototype without native getters/setters to prevent "Illegal invocation" errors
           InterceptedWebSocket.prototype = {
             constructor: InterceptedWebSocket,
             send: function(data) {
@@ -127,7 +187,6 @@
           InterceptedWebSocket.CLOSING = 2;
           InterceptedWebSocket.CLOSED = 3;
 
-          // Override Symbol.hasInstance so that both native and mock sockets pass "instanceof WebSocket"
           Object.defineProperty(InterceptedWebSocket, Symbol.hasInstance, {
             configurable: true,
             value: function(instance) {
@@ -138,7 +197,6 @@
           window.WebSocket = InterceptedWebSocket;
         }
 
-        // Intercept console.error and console.warn to completely silent benign WebSocket connection warnings
         var originalConsoleError = console.error;
         console.error = function() {
           var args = Array.prototype.slice.call(arguments);
@@ -189,7 +247,6 @@
           }
         };
 
-        // Catch and suppress HMR event log alerts in unhandled rejections or global errors
         window.addEventListener('unhandledrejection', function(event) {
           var reason = event.reason;
           if (reason) {
@@ -209,18 +266,31 @@
         }, true);
       })();
     </script>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Central Aymoré</title>
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   </head>
   <body>
     <!-- Google Tag Manager (noscript) -->
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N9B3XC86"
     height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <!-- End Google Tag Manager (noscript) -->
-    <div id="root"></div>
+
+    <div id="root">
+      <!-- Fallback Content for Web Crawlers (Bingbot / Googlebot) -->
+      <main style="padding: 24px; font-family: system-ui, -apple-system, sans-serif; max-width: 800px; margin: 0 auto; color: #18181b;">
+        <h1 style="font-size: 24px; font-weight: bold; color: #ec0000; margin-bottom: 16px;">Central de Atendimento e Negociação Aymoré Financiamentos</h1>
+        <p style="font-size: 16px; line-height: 1.6; color: #3f3f46; margin-bottom: 20px;">
+          Bem-vindo à Central Oficial Aymoré Financiamentos. Atendimento online rápido para emissão de 2ª via de boleto, quitação antecipada de contrato, renegociação de parcelas e suporte via WhatsApp.
+        </p>
+        <h2 style="font-size: 18px; font-weight: bold; color: #18181b; margin-top: 24px; margin-bottom: 12px;">Serviços Disponíveis:</h2>
+        <ul style="line-height: 1.8; color: #27272a;">
+          <li><a href="https://centralwebaymore.com/2via" style="color: #ec0000;">Emissão de 2ª Via de Boleto Aymoré</a></li>
+          <li><a href="https://centralwebaymore.com/quitacao" style="color: #ec0000;">Quitação de Financiamento de Veículo</a></li>
+          <li><a href="https://centralwebaymore.com/renegociacao-online" style="color: #ec0000;">Renegociação de Parcelas em Atraso</a></li>
+          <li><a href="https://centralwebaymore.com/simular-parcelamento" style="color: #ec0000;">Simulador de Acordo e Descontos</a></li>
+        </ul>
+      </main>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
+
 
