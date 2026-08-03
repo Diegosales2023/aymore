@@ -580,12 +580,14 @@ export default function App() {
             </div>
 
             {/* Atendimento Online Button */}
-            <button 
-              onClick={() => openContactForm("Atendimento Geral")}
-              className="bg-[#ec0000] hover:bg-red-700 hover:scale-[1.02] active:scale-[0.98] transition-all text-white font-bold py-2.5 px-5 rounded-full text-xs flex items-center gap-2 shadow-md cursor-pointer select-none border-0"
+            <a 
+              href={WHATSAPP_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-[#ec0000] hover:bg-red-700 hover:scale-[1.02] active:scale-[0.98] transition-all text-white font-bold py-2.5 px-5 rounded-full text-xs flex items-center gap-2 shadow-md cursor-pointer select-none border-0 no-underline"
             >
               <Phone className="w-4 h-4" /> Solicitar Atendimento
-            </button>
+            </a>
           </div>
 
           {/* MAIN DESKTOP NAVIGATION BAR */}
@@ -725,12 +727,14 @@ export default function App() {
                         </p>
                       </div>
 
-                      <button 
-                        onClick={() => openContactForm("Atendimento Geral")}
-                        className="w-full bg-white hover:bg-red-50 active:scale-[0.98] text-[#ec0000] font-extrabold py-4 rounded-lg text-xs uppercase tracking-wider shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer text-center border-0"
+                      <a 
+                        href={WHATSAPP_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full bg-white hover:bg-red-50 active:scale-[0.98] text-[#ec0000] font-extrabold py-4 rounded-lg text-xs uppercase tracking-wider shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer text-center border-0 no-underline"
                       >
                         Iniciar Atendimento Online
-                      </button>
+                      </a>
                     </div>
 
                     <div className="border-t border-white/10 pt-4 text-center relative z-10">
@@ -900,12 +904,14 @@ export default function App() {
                   </div>
 
                   <div className="pt-4">
-                    <button 
-                      onClick={() => openContactForm("2ª Via de Boleto / PIX")}
-                      className="bg-[#ec0000] hover:bg-[#cc0000] hover:scale-[1.02] active:scale-[0.98] transition-all text-white font-black py-4 px-8 rounded-lg text-xs uppercase tracking-wider shadow-lg inline-flex items-center justify-center gap-2 cursor-pointer select-none border-0"
+                    <a 
+                      href={WHATSAPP_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-[#ec0000] hover:bg-[#cc0000] hover:scale-[1.02] active:scale-[0.98] transition-all text-white font-black py-4 px-8 rounded-lg text-xs uppercase tracking-wider shadow-lg inline-flex items-center justify-center gap-2 cursor-pointer select-none border-0 no-underline"
                     >
                       <Phone className="w-4 h-4" /> Solicitar 2ª Via de Boleto / PIX
-                    </button>
+                    </a>
                   </div>
                 </div>
 
@@ -939,12 +945,14 @@ export default function App() {
                   </div>
 
                   <div className="pt-4">
-                    <button 
-                      onClick={() => openContactForm("Quitação de Contrato")}
-                      className="bg-[#ec0000] hover:bg-[#cc0000] hover:scale-[1.02] active:scale-[0.98] transition-all text-white font-black py-4 px-8 rounded-lg text-xs uppercase tracking-wider shadow-lg inline-flex items-center justify-center gap-2 cursor-pointer select-none border-0"
+                    <a 
+                      href={WHATSAPP_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-[#ec0000] hover:bg-[#cc0000] hover:scale-[1.02] active:scale-[0.98] transition-all text-white font-black py-4 px-8 rounded-lg text-xs uppercase tracking-wider shadow-lg inline-flex items-center justify-center gap-2 cursor-pointer select-none border-0 no-underline"
                     >
                       <Phone className="w-4 h-4" /> Solicitar Quitação Oficial
-                    </button>
+                    </a>
                   </div>
                 </div>
 
@@ -1018,12 +1026,14 @@ export default function App() {
                       <div className="text-xs text-zinc-400">
                         <span>Atendimento humano de Segunda a Sexta das 8h às 20h e Sábados das 8h às 14h.</span>
                       </div>
-                      <button
-                        onClick={() => openContactForm("Solicitação de Acordo")}
-                        className="w-full sm:w-auto bg-[#ec0000] hover:bg-[#cc0000] text-white font-extrabold py-3.5 px-8 rounded-lg text-xs uppercase tracking-wider shadow-lg transition-all cursor-pointer border-0 shrink-0"
+                      <a
+                        href={WHATSAPP_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full sm:w-auto bg-[#ec0000] hover:bg-[#cc0000] text-white font-extrabold py-3.5 px-8 rounded-lg text-xs uppercase tracking-wider shadow-lg transition-all cursor-pointer border-0 shrink-0 text-center inline-block no-underline"
                       >
                         Solicitar Proposta de Acordo
-                      </button>
+                      </a>
                     </div>
                   </div>
                 </div>
@@ -1154,12 +1164,14 @@ export default function App() {
                       })()}
 
                       <div className="pt-2">
-                        <button
-                          onClick={() => openContactForm("Simulação de Parcelamento")}
-                          className="w-full bg-[#ec0000] hover:bg-[#cc0000] text-white font-extrabold py-3.5 rounded-lg text-xs uppercase tracking-wider shadow-md transition-all cursor-pointer border-0"
+                        <a
+                          href={WHATSAPP_URL}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full bg-[#ec0000] hover:bg-[#cc0000] text-white font-extrabold py-3.5 rounded-lg text-xs uppercase tracking-wider shadow-md transition-all cursor-pointer border-0 text-center inline-block no-underline"
                         >
                           Contratar Este Parcelamento
-                        </button>
+                        </a>
                       </div>
                     </div>
                   </div>
@@ -1224,12 +1236,14 @@ export default function App() {
                   </div>
 
                   <div className="text-center pt-2">
-                    <button
-                      onClick={() => openContactForm("Renegociação Online")}
-                      className="bg-[#ec0000] hover:bg-[#cc0000] hover:scale-[1.02] active:scale-[0.98] transition-all text-white font-black py-4 px-10 rounded-full text-xs uppercase tracking-wider shadow-lg inline-flex items-center gap-2 cursor-pointer border-0"
+                    <a
+                      href={WHATSAPP_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-[#ec0000] hover:bg-[#cc0000] hover:scale-[1.02] active:scale-[0.98] transition-all text-white font-black py-4 px-10 rounded-full text-xs uppercase tracking-wider shadow-lg inline-flex items-center gap-2 cursor-pointer border-0 no-underline"
                     >
                       Iniciar Renegociação Online <ChevronRight className="w-4 h-4" />
-                    </button>
+                    </a>
                   </div>
                 </div>
               </div>
@@ -1262,12 +1276,14 @@ export default function App() {
                   </div>
 
                   <div className="pt-4">
-                    <button 
-                      onClick={() => openContactForm("Parcelamento / Renegociação")}
-                      className="bg-[#ec0000] hover:bg-[#cc0000] hover:scale-[1.02] active:scale-[0.98] transition-all text-white font-black py-4 px-8 rounded-lg text-xs uppercase tracking-wider shadow-lg inline-flex items-center justify-center gap-2 cursor-pointer select-none border-0"
+                    <a 
+                      href={WHATSAPP_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-[#ec0000] hover:bg-[#cc0000] hover:scale-[1.02] active:scale-[0.98] transition-all text-white font-black py-4 px-8 rounded-lg text-xs uppercase tracking-wider shadow-lg inline-flex items-center justify-center gap-2 cursor-pointer select-none border-0 no-underline"
                     >
                       <Phone className="w-4 h-4" /> Solicitar Acordo de Parcelamento
-                    </button>
+                    </a>
                   </div>
                 </div>
 
@@ -1301,12 +1317,14 @@ export default function App() {
                   </div>
 
                   <div className="pt-4">
-                    <button 
-                      onClick={() => openContactForm("Antecipação de Parcelas")}
-                      className="bg-[#ec0000] hover:bg-[#cc0000] hover:scale-[1.02] active:scale-[0.98] transition-all text-white font-black py-4 px-8 rounded-lg text-xs uppercase tracking-wider shadow-lg inline-flex items-center justify-center gap-2 cursor-pointer select-none border-0"
+                    <a 
+                      href={WHATSAPP_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-[#ec0000] hover:bg-[#cc0000] hover:scale-[1.02] active:scale-[0.98] transition-all text-white font-black py-4 px-8 rounded-lg text-xs uppercase tracking-wider shadow-lg inline-flex items-center justify-center gap-2 cursor-pointer select-none border-0 no-underline"
                     >
                       <Phone className="w-4 h-4" /> Solicitar Boleto de Antecipação
-                    </button>
+                    </a>
                   </div>
                 </div>
 
@@ -1576,14 +1594,14 @@ export default function App() {
                       </div>
 
                       <div className="pt-2 relative">
-                        <button
-                          onClick={() => {
-                            openContactForm("Simulação de Financiamento");
-                          }}
-                          className="w-full bg-[#ec0000] hover:bg-[#cc0000] text-white font-bold py-3 rounded-lg text-xs uppercase tracking-wider shadow flex items-center justify-center gap-2 cursor-pointer border-0"
+                        <a
+                          href={WHATSAPP_URL}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full bg-[#ec0000] hover:bg-[#cc0000] text-white font-bold py-3 rounded-lg text-xs uppercase tracking-wider shadow flex items-center justify-center gap-2 cursor-pointer border-0 no-underline"
                         >
                           Contratar Financiamento Online
-                        </button>
+                        </a>
                       </div>
 
                     </div>
@@ -1605,12 +1623,14 @@ export default function App() {
           </div>
 
           <div className="pt-2">
-            <button 
-              onClick={() => openContactForm("Dúvidas ou Outros Assuntos")}
-              className="inline-flex items-center gap-2.5 bg-[#ec0000] hover:bg-[#cc0000] active:scale-[0.98] text-white font-extrabold py-3.5 px-8 rounded-full text-xs uppercase tracking-wider shadow-md transition-all cursor-pointer border-0"
+            <a 
+              href={WHATSAPP_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2.5 bg-[#ec0000] hover:bg-[#cc0000] active:scale-[0.98] text-white font-extrabold py-3.5 px-8 rounded-full text-xs uppercase tracking-wider shadow-md transition-all cursor-pointer border-0 no-underline"
             >
               Falar com Atendente Online <ArrowRight className="w-4 h-4" />
-            </button>
+            </a>
           </div>
 
           <p className="text-[10px] text-zinc-400">
@@ -1622,17 +1642,19 @@ export default function App() {
         </AnimatePresence>
       </main>
 
-      {/* FLOAT FLOATING CONTACT BUTTON */}
-      <button 
-        onClick={() => openContactForm("Atendimento Geral")}
-        className="fixed bottom-6 right-6 z-40 bg-[#ec0000] hover:bg-[#cc0000] hover:scale-105 active:scale-95 transition-all text-white p-4 rounded-full shadow-2xl flex items-center justify-center gap-2 font-bold text-sm tracking-wide group cursor-pointer border-0"
-        title="Solicitar Atendimento"
+      {/* FLOATING WHATSAPP BUTTON */}
+      <a 
+        href={WHATSAPP_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-6 right-6 z-40 bg-[#ec0000] hover:bg-[#cc0000] hover:scale-105 active:scale-95 transition-all text-white p-4 rounded-full shadow-2xl flex items-center justify-center gap-2 font-bold text-sm tracking-wide group cursor-pointer border-0 no-underline"
+        title="Solicitar Atendimento Online"
       >
         <Phone className="w-5 h-5 animate-pulse" />
         <span className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 ease-out whitespace-nowrap">
           Solicitar Atendimento Online
         </span>
-      </button>
+      </a>
 
       {/* FOOTER */}
       <footer className="bg-zinc-950 text-[#888888] pt-16 pb-8 border-t border-zinc-900 select-none">
