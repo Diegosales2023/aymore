@@ -48,7 +48,7 @@ import {
   FAQ_DATA 
 } from "./data";
 
-const WHATSAPP_URL = "https://api.whatsapp.com/send?phone=5511975486623&text=Solicito%20Atendimento";
+const WHATSAPP_URL = "https://api.whatsapp.com/send?phone=5511975486623&text=Suporte%20Aymoré";
 const WHATSAPP_FLOATING_URL = "https://api.whatsapp.com/send?phone=5511975486623&text=Suporte%20Aymoré";
 const DEMO_CPF_CNPJ = "123.456.789-00";
 const demoClientData = generateClientData(DEMO_CPF_CNPJ);
@@ -335,9 +335,8 @@ export default function App() {
     setSupabaseStatus({ disabled: true });
   };
 
-  const openContactForm = (subject: string) => {
-    const text = encodeURIComponent(`Olá, gostaria de atendimento sobre: ${subject}`);
-    window.open(`https://api.whatsapp.com/send?phone=5511975486623&text=${text}`, "_blank");
+  const openContactForm = (_subject?: string) => {
+    window.open(WHATSAPP_URL, "_blank");
   };
 
   const fetchBackupLeads = async () => {
