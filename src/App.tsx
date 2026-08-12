@@ -568,11 +568,11 @@ export default function App() {
           <div className="flex justify-between items-center h-20">
             {/* Logo area */}
             <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab(ActiveTab.HOME)}>
-              <div className="w-10 h-10 bg-[#ec0000] rounded-lg flex items-center justify-center shadow-lg relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-tr from-red-600 to-red-500" />
-                {/* Simulated Santander Brand Flame symbol */}
-                <span className="relative text-white font-extrabold text-2xl tracking-tighter select-none">S</span>
-              </div>
+              <img 
+                src="/logo.svg" 
+                alt="Aymoré Financiamentos Logo" 
+                className="w-10 h-10 object-contain drop-shadow-sm select-none" 
+              />
               <div className="flex flex-col">
                 <span className="text-lg font-extrabold tracking-tight text-zinc-900 leading-none">Aymoré</span>
                 <span className="text-[10px] uppercase tracking-widest font-bold text-zinc-500">Crédito & Financiamento</span>
@@ -1665,9 +1665,11 @@ export default function App() {
             
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-[#ec0000] rounded flex items-center justify-center">
-                  <span className="text-white font-bold text-lg select-none">S</span>
-                </div>
+                <img 
+                  src="/logo.svg" 
+                  alt="Aymoré Financiamentos Logo" 
+                  className="w-8 h-8 object-contain select-none" 
+                />
                 <div className="flex flex-col">
                   <span className="text-white font-bold tracking-tight leading-none text-sm">Aymoré Financiamentos</span>
                   <span className="text-[9px] uppercase font-bold text-zinc-500">Grupo Santander</span>
