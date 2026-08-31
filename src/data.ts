@@ -194,23 +194,43 @@ export interface FaqItem {
 
 export const FAQ_DATA: FaqItem[] = [
   {
-    question: "Como posso pagar meu boleto com segurança?",
-    answer: "Sempre pague os boletos gerados dentro deste portal de autoatendimento. Verifique se o beneficiário final do pagamento consta como SANTANDER SOCIEDADE DE CREDITO, FINANCIAMENTO E INVESTIMENTO S.A. (CNPJ 07.707.650/0001-10) e se o banco emissor é o Santander (código 033)."
+    question: "Como emitir a 2ª via do meu boleto ou código PIX Aymoré?",
+    answer: "Para emitir a 2ª via, acesse a aba '2ª Via de Boleto' no menu superior ou digite seu CPF/CNPJ na página inicial. Você poderá visualizar todas as parcelas pendentes ou vencidas do seu contrato de financiamento, copiar a linha digitável, gerar o código PIX com baixa instantânea ou imprimir o boleto oficial do Banco Santander."
   },
   {
-    question: "Como funciona a antecipação de parcelas?",
-    answer: "A antecipação de parcelas permite que você pague as parcelas futuras (geralmente as últimas) com desconto proporcional de juros. Ao selecionar as parcelas desejadas no menu 'Antecipação', nosso sistema calcula automaticamente o abatimento e gera um boleto com o valor líquido reduzido."
+    question: "Como funciona a quitação antecipada de contrato com desconto?",
+    answer: "A quitação antecipada permite liquidar todo o saldo devedor do financiamento com o abatimento proporcional e integral de juros e encargos futuros (conforme estabelecido pelo Código de Defesa do Consumidor e normas do Banco Central). Acesse 'Quitação de Contrato', escolha a data limite para pagamento e gere a proposta de quitação com o valor recalculado."
   },
   {
-    question: "Qual o prazo para baixa bancária após o pagamento?",
-    answer: "O prazo padrão para compensação e baixa automática do boleto é de até 3 dias úteis. Para pagamentos realizados via PIX utilizando o QR Code gerado em nosso portal, a baixa ocorre quase em tempo real, em até 1 hora."
+    question: "Como funciona a antecipação de parcelas futuras (de trás para frente)?",
+    answer: "Ao antecipar parcelas de trás para frente (as últimas do contrato), você elimina o período mais longo de incidência de juros, garantindo o maior desconto percentual possível. Acesse 'Antecipação de Parcelas', selecione as parcelas que deseja quitar e emita o boleto com o valor líquido reduzido."
   },
   {
-    question: "Posso parcelar parcelas que já estão em atraso?",
-    answer: "Sim! No menu 'Parcelamento', você pode consultar suas parcelas vencidas, simular uma nova negociação de acordo com o seu orçamento e dividir o saldo pendente em novos boletos."
+    question: "Como simular o parcelamento de uma dívida ou fatura em atraso?",
+    answer: "Na aba 'Simular Parcelamento' ou 'Simulador', utilize a calculadora interativa para definir o valor do saldo pendente, o valor de entrada e a quantidade de parcelas (de 6x até 48x). O sistema calcula instantaneamente o valor estimado da parcela e as taxas aplicáveis para renegociação online."
   },
   {
-    question: "Onde fica a sede física da Aymoré Crédito e Financiamento?",
-    answer: "Nossa sede corporativa está localizada na Avenida Presidente Juscelino Kubitschek, 2041 e 2235, Bloco A, Vila Olímpia, São Paulo - SP, CEP 04543-011. Nós fazemos parte integrante do Grupo Santander Brasil."
+    question: "Como posso pagar meu boleto com segurança contra fraudes?",
+    answer: "Sempre gere seus boletos exclusivamente através deste portal oficial ou de nossos canais verificados de atendimento. Antes de confirmar qualquer pagamento no seu banco ou aplicativo, confira se o beneficiário final é SANTANDER SOCIEDADE DE CREDITO, FINANCIAMENTO E INVESTIMENTO S.A. (CNPJ 07.707.650/0001-10) e se o banco emissor é o Santander (código 033). Nós nunca solicitamos transferências para contas de pessoas físicas."
+  },
+  {
+    question: "Qual o prazo para baixa bancária e retirada de restrições no SPC/Serasa?",
+    answer: "Para pagamentos via PIX, a baixa de pagamento no sistema é processada quase em tempo real (em até 1 hora útil). Para boletos bancários pagos na rede bancária ou lotéricas, o prazo de compensação é de até 3 dias úteis. A baixa de apontamentos nos órgãos de proteção ao crédito (SPC/Serasa) ocorre em até 5 dias úteis após a compensação do primeiro pagamento do acordo."
+  },
+  {
+    question: "Quanto tempo leva para dar baixa no gravame do veículo após a quitação?",
+    answer: "Após a compensação integral do pagamento do saldo devedor de quitação, a instituição financeira realiza a desalienação e baixa eletrônica automática do gravame junto ao Sistema Nacional de Gravames (SNG) e DETRAN em até 10 dias úteis."
+  },
+  {
+    question: "Posso renegociar contratos com parcelas em atraso pela internet?",
+    answer: "Sim! Na aba 'Renegociação Online' ou 'Parcelamento', você pode renegociar faturas vencidas, obter isenção de honorários advocatícios e multas moratórias, e escolher um plano flexível de pagamento sem burocracia."
+  },
+  {
+    question: "Quais são os canais oficiais de atendimento da Central Aymoré?",
+    answer: "Nossos canais oficiais são: WhatsApp Oficial de Autoatendimento; Central Telefônica Capitais e Regiões Metropolitanas no 4004 9090; Demais Localidades no 0800 722 9090; SAC 0800 704 9090; Ouvidoria Geral 0800 726 0322; e E-mail: atendimento@centralwebaymore.com."
+  },
+  {
+    question: "Onde fica a sede física da Aymoré Financiamentos?",
+    answer: "Nossa sede corporativa está localizada na Avenida Presidente Juscelino Kubitschek, 2041 e 2235, Bloco A, Vila Olímpia, São Paulo - SP, CEP 04543-011. Aymoré Crédito, Financiamento e Investimento S.A. é uma sociedade integrante do Grupo Santander Brasil."
   }
 ];

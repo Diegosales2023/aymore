@@ -13,7 +13,12 @@ export enum ActiveTab {
   SERVICOS = "servicos",
   ACORDO = "solicitar-acordo",
   SIMULAR_PARCELAMENTO = "simular-parcelamento",
-  RENEGOCIACAO = "renegociacao-online"
+  SIMULADOR = "simulador",
+  RENEGOCIACAO = "renegociacao-online",
+  FAQ = "perguntas-frequentes",
+  CONTATO = "contato",
+  POLITICA_PRIVACIDADE = "politica-de-privacidade",
+  TERMOS_USO = "termos-de-uso"
 }
 
 export interface Contract {

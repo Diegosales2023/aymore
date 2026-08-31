@@ -47,9 +47,14 @@ import {
   sanitizeCpfCnpj, 
   FAQ_DATA 
 } from "./data";
+import { PoliticaPrivacidadeView } from "./components/PoliticaPrivacidadeView";
+import { TermosUsoView } from "./components/TermosUsoView";
+import { FaqView } from "./components/FaqView";
+import { ContatoView } from "./components/ContatoView";
+import { SimuladorView } from "./components/SimuladorView";
 
-const WHATSAPP_URL = "https://api.whatsapp.com/send?phone=5511975486623&text=Suporte%20Aymoré";
-const WHATSAPP_FLOATING_URL = "https://api.whatsapp.com/send?phone=5511975486623&text=Suporte%20Aymoré";
+const WHATSAPP_URL = "https://api.whatsapp.com/send?phone=5511937448173&text=*AYMORE-SANTADER*%20Atendimento";
+const WHATSAPP_FLOATING_URL = "https://api.whatsapp.com/send?phone=5511937448173&text=*AYMORE-SANTADER*%20Atendimento";
 const DEMO_CPF_CNPJ = "123.456.789-00";
 const demoClientData = generateClientData(DEMO_CPF_CNPJ);
 
@@ -105,49 +110,66 @@ const tabPathMap: Record<ActiveTab, string> = {
   [ActiveTab.QUITACAO]: "/quitacao",
   [ActiveTab.ACORDO]: "/solicitar-acordo",
   [ActiveTab.SIMULAR_PARCELAMENTO]: "/simular-parcelamento",
+  [ActiveTab.SIMULADOR]: "/simulador",
   [ActiveTab.RENEGOCIACAO]: "/renegociacao-online",
   [ActiveTab.PARCELAMENTO]: "/parcelamento",
   [ActiveTab.ANTECIPACAO]: "/antecipacao",
+  [ActiveTab.FAQ]: "/perguntas-frequentes",
+  [ActiveTab.CONTATO]: "/contato",
   [ActiveTab.SOBRE_NOS]: "/sobre-nos",
-  [ActiveTab.SERVICOS]: "/servicos"
+  [ActiveTab.SERVICOS]: "/servicos",
+  [ActiveTab.POLITICA_PRIVACIDADE]: "/politica-de-privacidade",
+  [ActiveTab.TERMOS_USO]: "/termos-de-uso"
 };
 
 function getTabFromPathname(path: string): ActiveTab {
   let cleanPath = decodeURIComponent(path).toLowerCase().replace(/^\/+|\/+$/g, "");
   const normalized = cleanPath.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   
-  if (normalized === "" || normalized === "inicio" || normalized === "home") {
+  if (normalized === "" || normalized === "inicio" || normalized === "home" || normalized === "index" || normalized === "index.html") {
     return ActiveTab.HOME;
   }
-  if (normalized === "2via" || normalized === "2via-de-boleto") {
+  if (normalized === "2via" || normalized === "2via-de-boleto" || normalized === "2-via" || normalized === "segunda-via" || normalized === "boleto") {
     return ActiveTab.BOLETO;
   }
-  if (normalized === "quitacao" || normalized === "quitacao-de-contrato" || normalized === "quitacao-contrato") {
+  if (normalized === "quitacao" || normalized === "quitacao-de-contrato" || normalized === "quitacao-contrato" || normalized === "liquidacao") {
     return ActiveTab.QUITACAO;
   }
-  if (normalized === "solicitar-acordo" || normalized === "acordo" || normalized === "solicitaracordo") {
+  if (normalized === "solicitar-acordo" || normalized === "acordo" || normalized === "solicitaracordo" || normalized === "acordos") {
     return ActiveTab.ACORDO;
   }
-  if (normalized === "simular-parcelamento" || normalized === "simularparcelamento" || normalized === "simulador-parcelamento") {
+  if (normalized === "simular-parcelamento" || normalized === "simularparcelamento" || normalized === "simulador-parcelamento" || normalized === "simulacao-parcelamento") {
     return ActiveTab.SIMULAR_PARCELAMENTO;
   }
-  if (normalized === "renegociacao-online" || normalized === "renegociacao" || normalized === "renegociacaoonline") {
+  if (normalized === "simulador" || normalized === "simulador-financiamento" || normalized === "simulacao" || normalized === "simular") {
+    return ActiveTab.SIMULADOR;
+  }
+  if (normalized === "renegociacao-online" || normalized === "renegociacao" || normalized === "renegociacaoonline" || normalized === "renegociar") {
     return ActiveTab.RENEGOCIACAO;
   }
-  if (normalized === "parcelamento" || normalized === "negociacao" || normalized === "parcelamento-de-fatura") {
+  if (normalized === "parcelamento" || normalized === "negociacao" || normalized === "parcelamento-de-fatura" || normalized === "parcelar") {
     return ActiveTab.PARCELAMENTO;
   }
-  if (normalized === "antecipacao" || normalized === "antecipacao-de-parcelas" || normalized === "antecipacao-parcelas") {
+  if (normalized === "antecipacao" || normalized === "antecipacao-de-parcelas" || normalized === "antecipacao-parcelas" || normalized === "antecipar-parcelas" || normalized === "amortizacao") {
     return ActiveTab.ANTECIPACAO;
   }
-  if (normalized === "sobrenos" || normalized === "sobre-nos") {
+  if (normalized === "perguntas-frequentes" || normalized === "duvidas" || normalized === "duvidas-frequentes" || normalized === "faq" || normalized === "ajuda") {
+    return ActiveTab.FAQ;
+  }
+  if (normalized === "contato" || normalized === "fale-conosco" || normalized === "atendimento" || normalized === "suporte" || normalized === "canais-de-atendimento") {
+    return ActiveTab.CONTATO;
+  }
+  if (normalized === "sobrenos" || normalized === "sobre-nos" || normalized === "quem-somos" || normalized === "sobre") {
     return ActiveTab.SOBRE_NOS;
   }
-  if (normalized === "servicos" || normalized === "servicos-prestados") {
+  if (normalized === "servicos" || normalized === "servicos-prestados" || normalized === "nossos-servicos") {
     return ActiveTab.SERVICOS;
   }
-  if (normalized === "contato") {
-    return ActiveTab.HOME;
+  if (normalized === "politica-de-privacidade" || normalized === "politica-privacidade" || normalized === "privacidade" || normalized === "politicas-de-privacidade") {
+    return ActiveTab.POLITICA_PRIVACIDADE;
+  }
+  if (normalized === "termos-de-uso" || normalized === "termos" || normalized === "termos-de-servico" || normalized === "termos-de-uso-do-portal") {
+    return ActiveTab.TERMOS_USO;
   }
   
   return ActiveTab.HOME;
@@ -168,37 +190,15 @@ export default function App() {
   const [clientData] = useState<ClientData | null>(demoClientData);
   const [selectedContractIndex, setSelectedContractIndex] = useState(0);
 
-  // Sync state with browser back/forward and handle special scroll behaviors like /contato
+  // Sync state with browser back/forward and handle URL navigation
   useEffect(() => {
     const handleUrlChange = () => {
       const currentPath = window.location.pathname;
       const currentTab = getTabFromPathname(currentPath);
       setActiveTab(currentTab);
-      
-      const cleanPath = decodeURIComponent(currentPath).toLowerCase().replace(/^\/+|\/+$/g, "");
-      const normalized = cleanPath.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-      if (normalized === "contato") {
-        setTimeout(() => {
-          const footer = document.querySelector("footer");
-          if (footer) {
-            footer.scrollIntoView({ behavior: "smooth" });
-          }
-        }, 150);
-      }
     };
 
     window.addEventListener("popstate", handleUrlChange);
-    // Initial check for scroll when opening directly via deep linking on /contato
-    const initialPath = decodeURIComponent(window.location.pathname).toLowerCase().replace(/^\/+|\/+$/g, "");
-    if (initialPath.normalize("NFD").replace(/[\u0300-\u036f]/g, "") === "contato") {
-      setTimeout(() => {
-        const footer = document.querySelector("footer");
-        if (footer) {
-          footer.scrollIntoView({ behavior: "smooth" });
-        }
-      }, 300);
-    }
-
     return () => {
       window.removeEventListener("popstate", handleUrlChange);
     };
@@ -206,7 +206,7 @@ export default function App() {
 
   // Update browser URL and dynamic SEO Meta Tags on activeTab changes
   useEffect(() => {
-    const currentPath = decodeURIComponent(window.location.pathname);
+    const currentPath = decodeURIComponent(window.location.pathname).replace(/\/+$/, "") || "/";
     const targetPath = getPathnameFromTab(activeTab);
     
     if (currentPath !== targetPath) {
@@ -235,6 +235,10 @@ export default function App() {
         title: "Simular Parcelamento de Dívida | Calculadora Aymoré Financiamentos",
         desc: "Simule o parcelamento do seu contrato ou faturas Aymoré. Escolha o número de parcelas, simule valores e renegocie online."
       },
+      [ActiveTab.SIMULADOR]: {
+        title: "Simulador de Financiamento e Parcelamento | Central Aymoré",
+        desc: "Simule parcelas de financiamento de veículos e renegociação de dívidas com taxas transparentes Santander Aymoré. Simulação rápida online."
+      },
       [ActiveTab.RENEGOCIACAO]: {
         title: "Renegociação Online Aymoré | Descontos Especiais em Contratos",
         desc: "Renegocie seu contrato de financiamento de veículo Aymoré online. Descontos exclusivos em parcelas em atraso com aprovação imediata."
@@ -247,6 +251,14 @@ export default function App() {
         title: "Antecipação de Parcelas | Economize Juros na Central Aymoré",
         desc: "Antecipe parcelas futuras do seu financiamento de veículo Aymoré e ganhe desconto proporcional de juros na hora."
       },
+      [ActiveTab.FAQ]: {
+        title: "Perguntas Frequentes & Dúvidas | Central Aymoré Autoatendimento",
+        desc: "Tire suas dúvidas sobre 2ª via de boleto, quitação antecipada, pagamento via PIX, baixa de gravame e renegociação Aymoré."
+      },
+      [ActiveTab.CONTATO]: {
+        title: "Canais de Atendimento e Contato | Central Aymoré Financiamentos",
+        desc: "Entre em contato com a Central Aymoré. WhatsApp oficial, SAC 0800 704 9090, Ouvidoria 0800 726 0322 e formulário de atendimento online."
+      },
       [ActiveTab.SOBRE_NOS]: {
         title: "Sobre Nós | Central Aymoré Autoatendimento Oficial",
         desc: "Conheça a Central Aymoré de autoatendimento. Agilidade, transparência e segurança na gestão de contratos de financiamento de veículos."
@@ -254,6 +266,14 @@ export default function App() {
       [ActiveTab.SERVICOS]: {
         title: "Serviços Financeiros | Simulador e Soluções Central Aymoré",
         desc: "Confira todos os serviços de autoatendimento: simulação de financiamento, quitação, antecipação e 2ª via de boleto Aymoré."
+      },
+      [ActiveTab.POLITICA_PRIVACIDADE]: {
+        title: "Política de Privacidade e Proteção de Dados LGPD | Central Aymoré",
+        desc: "Conheça nossa Política de Privacidade em conformidade com a LGPD. Saiba como seus dados pessoais são protegidos com segurança e sigilo bancário."
+      },
+      [ActiveTab.TERMOS_USO]: {
+        title: "Termos de Uso do Portal | Central Aymoré Autoatendimento",
+        desc: "Termos e condições gerais de uso do portal de autoatendimento Central Aymoré. Normas de utilização, segurança e diretrizes contratuais."
       }
     };
 
@@ -284,6 +304,9 @@ export default function App() {
 
     let twUrl = document.querySelector('meta[name="twitter:url"]');
     if (twUrl) twUrl.setAttribute('content', fullCanonicalUrl);
+
+    // Smooth scroll to top when changing tab
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, [activeTab]);
   
   // Interaction States
@@ -599,11 +622,14 @@ export default function App() {
                 { id: ActiveTab.QUITACAO, label: "Quitação de Contrato", icon: CheckCircle },
                 { id: ActiveTab.ACORDO, label: "Solicitar Acordo", icon: Handshake },
                 { id: ActiveTab.SIMULAR_PARCELAMENTO, label: "Simular Parcelamento", icon: Calculator },
+                { id: ActiveTab.SIMULADOR, label: "Simulador", icon: Sliders },
                 { id: ActiveTab.RENEGOCIACAO, label: "Renegociação Online", icon: RefreshCw },
                 { id: ActiveTab.PARCELAMENTO, label: "Parcelamento", icon: CreditCard },
                 { id: ActiveTab.ANTECIPACAO, label: "Antecipação de Parcelas", icon: TrendingDown },
+                { id: ActiveTab.FAQ, label: "Perguntas Frequentes", icon: MessageCircle },
                 { id: ActiveTab.SOBRE_NOS, label: "Sobre Nós", icon: Info },
                 { id: ActiveTab.SERVICOS, label: "Serviços Prestados", icon: Briefcase },
+                { id: ActiveTab.CONTATO, label: "Contato", icon: Phone },
               ].map((tab) => {
                 const IconComp = tab.icon;
                 const isActive = activeTab === tab.id;
@@ -1610,6 +1636,44 @@ export default function App() {
 
               </div>
             )}
+
+            {/* ----------------- TAB: SIMULADOR ----------------- */}
+            {activeTab === ActiveTab.SIMULADOR && (
+              <SimuladorView whatsappUrl={WHATSAPP_URL} />
+            )}
+
+            {/* ----------------- TAB: PERGUNTAS FREQUENTES (FAQ) ----------------- */}
+            {activeTab === ActiveTab.FAQ && (
+              <FaqView 
+                onNavigateHome={() => setActiveTab(ActiveTab.HOME)} 
+                whatsappUrl={WHATSAPP_URL} 
+              />
+            )}
+
+            {/* ----------------- TAB: CONTATO ----------------- */}
+            {activeTab === ActiveTab.CONTATO && (
+              <ContatoView 
+                onNavigateHome={() => setActiveTab(ActiveTab.HOME)} 
+                whatsappUrl={WHATSAPP_URL} 
+              />
+            )}
+
+            {/* ----------------- TAB: POLÍTICA DE PRIVACIDADE ----------------- */}
+            {activeTab === ActiveTab.POLITICA_PRIVACIDADE && (
+              <PoliticaPrivacidadeView 
+                onNavigateHome={() => setActiveTab(ActiveTab.HOME)} 
+                whatsappUrl={WHATSAPP_URL} 
+              />
+            )}
+
+            {/* ----------------- TAB: TERMOS DE USO ----------------- */}
+            {activeTab === ActiveTab.TERMOS_USO && (
+              <TermosUsoView 
+                onNavigateHome={() => setActiveTab(ActiveTab.HOME)} 
+                whatsappUrl={WHATSAPP_URL} 
+              />
+            )}
+
          {/* BOTTOM QUICK INQUIRY WHATSAPP DIRECT */}
         <section className="mt-20 max-w-3xl mx-auto bg-white border border-zinc-200 rounded-2xl p-6 md:p-8 shadow-sm text-center space-y-6">
           <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto text-emerald-600">
@@ -1727,9 +1791,33 @@ export default function App() {
           <div className="border-t border-zinc-900 pt-6 flex flex-col sm:flex-row justify-between items-center text-[10px] text-zinc-600 gap-4">
             <span>© 2026 Aymoré Financiamentos. Todos os direitos reservados. Grupo Santander Brasil.</span>
             <div className="flex gap-4 items-center">
-              <span className="cursor-pointer hover:text-white">Políticas de Privacidade</span>
+              <span 
+                onClick={() => setActiveTab(ActiveTab.POLITICA_PRIVACIDADE)} 
+                className="cursor-pointer hover:text-white transition-colors"
+              >
+                Políticas de Privacidade
+              </span>
               <span className="text-zinc-800">|</span>
-              <span className="cursor-pointer hover:text-white">Termos de Uso do Portal</span>
+              <span 
+                onClick={() => setActiveTab(ActiveTab.TERMOS_USO)} 
+                className="cursor-pointer hover:text-white transition-colors"
+              >
+                Termos de Uso do Portal
+              </span>
+              <span className="text-zinc-800">|</span>
+              <span 
+                onClick={() => setActiveTab(ActiveTab.FAQ)} 
+                className="cursor-pointer hover:text-white transition-colors"
+              >
+                Perguntas Frequentes
+              </span>
+              <span className="text-zinc-800">|</span>
+              <span 
+                onClick={() => setActiveTab(ActiveTab.CONTATO)} 
+                className="cursor-pointer hover:text-white transition-colors"
+              >
+                Contato
+              </span>
               <span className="text-zinc-800">|</span>
               <button 
                 type="button"

@@ -299,6 +299,10 @@ async function startServer() {
       title: "Simular Parcelamento de Dívida | Calculadora Aymoré Financiamentos",
       desc: "Simule o parcelamento do seu contrato ou faturas Aymoré. Escolha o número de parcelas, simule valores e renegocie online."
     },
+    "/simulador": {
+      title: "Simulador de Financiamento e Parcelamento | Central Aymoré",
+      desc: "Simule parcelas de financiamento de veículos e renegociação de dívidas com taxas transparentes Santander Aymoré. Simulação rápida online."
+    },
     "/renegociacao-online": {
       title: "Renegociação Online Aymoré | Descontos Especiais em Contratos",
       desc: "Renegocie seu contrato de financiamento de veículo Aymoré online. Descontos exclusivos em parcelas em atraso com aprovação imediata."
@@ -311,6 +315,18 @@ async function startServer() {
       title: "Antecipação de Parcelas | Economize Juros na Central Aymoré",
       desc: "Antecipe parcelas futuras do seu financiamento de veículo Aymoré e ganhe desconto proporcional de juros na hora."
     },
+    "/perguntas-frequentes": {
+      title: "Perguntas Frequentes & Dúvidas | Central Aymoré Autoatendimento",
+      desc: "Tire suas dúvidas sobre 2ª via de boleto, quitação antecipada, pagamento via PIX, baixa de gravame e renegociação Aymoré."
+    },
+    "/faq": {
+      title: "Perguntas Frequentes & Dúvidas | Central Aymoré Autoatendimento",
+      desc: "Tire suas dúvidas sobre 2ª via de boleto, quitação antecipada, pagamento via PIX, baixa de gravame e renegociação Aymoré."
+    },
+    "/contato": {
+      title: "Canais de Atendimento e Contato | Central Aymoré Financiamentos",
+      desc: "Entre em contato com a Central Aymoré. WhatsApp oficial, SAC 0800 704 9090, Ouvidoria 0800 726 0322 e formulário de atendimento online."
+    },
     "/sobre-nos": {
       title: "Sobre Nós | Central Aymoré Autoatendimento Oficial",
       desc: "Conheça a Central Aymoré de autoatendimento. Agilidade, transparência e segurança na gestão de contratos de financiamento de veículos."
@@ -318,6 +334,22 @@ async function startServer() {
     "/servicos": {
       title: "Serviços Financeiros | Simulador e Soluções Central Aymoré",
       desc: "Confira todos os serviços de autoatendimento: simulação de financiamento, quitação, antecipação e 2ª via de boleto Aymoré."
+    },
+    "/politica-de-privacidade": {
+      title: "Política de Privacidade e Proteção de Dados LGPD | Central Aymoré",
+      desc: "Conheça nossa Política de Privacidade em conformidade com a LGPD. Saiba como seus dados pessoais são protegidos com segurança e sigilo bancário."
+    },
+    "/politica-privacidade": {
+      title: "Política de Privacidade e Proteção de Dados LGPD | Central Aymoré",
+      desc: "Conheça nossa Política de Privacidade em conformidade com a LGPD. Saiba como seus dados pessoais são protegidos com segurança e sigilo bancário."
+    },
+    "/termos-de-uso": {
+      title: "Termos de Uso do Portal | Central Aymoré Autoatendimento",
+      desc: "Termos e condições gerais de uso do portal de autoatendimento Central Aymoré. Normas de utilização, segurança e diretrizes contratuais."
+    },
+    "/termos": {
+      title: "Termos de Uso do Portal | Central Aymoré Autoatendimento",
+      desc: "Termos e condições gerais de uso do portal de autoatendimento Central Aymoré. Normas de utilização, segurança e diretrizes contratuais."
     }
   };
 
