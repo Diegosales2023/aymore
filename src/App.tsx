@@ -53,8 +53,8 @@ import { FaqView } from "./components/FaqView";
 import { ContatoView } from "./components/ContatoView";
 import { SimuladorView } from "./components/SimuladorView";
 
-const WHATSAPP_URL = "https://api.whatsapp.com/send?phone=5511920747530&text=*Suporte*%20AYMORÉ";
-const WHATSAPP_FLOATING_URL = "https://api.whatsapp.com/send?phone=5511920747530&text=*Suporte*%20AYMORÉ";
+const WHATSAPP_URL = "https://api.whatsapp.com/send?phone=5511920747530&text=*Suporte*%20AYMOR%C3%89";
+const WHATSAPP_FLOATING_URL = "https://api.whatsapp.com/send?phone=5511920747530&text=*Suporte*%20AYMOR%C3%89";
 const DEMO_CPF_CNPJ = "123.456.789-00";
 const demoClientData = generateClientData(DEMO_CPF_CNPJ);
 
