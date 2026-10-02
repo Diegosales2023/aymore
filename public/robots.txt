@@ -7,4 +7,4 @@ Allow: /
 User-agent: msnbot
 Allow: /
 
-Sitemap: https://centralwebaymore.com/sitemap.xml
+Sitemap: https://aymorefinceweb.com/sitemap.xml

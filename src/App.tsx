@@ -126,7 +126,7 @@ function getTabFromPathname(path: string): ActiveTab {
   let cleanPath = decodeURIComponent(path).toLowerCase().replace(/^\/+|\/+$/g, "");
   const normalized = cleanPath.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   
-  if (normalized === "" || normalized === "inicio" || normalized === "home" || normalized === "index" || normalized === "index.html") {
+  if (normalized === "" || normalized === "inicio" || normalized === "home" || normalized === "index" || normalized === "index.html" || normalized === "vite") {
     return ActiveTab.HOME;
   }
   if (normalized === "2via" || normalized === "2via-de-boleto" || normalized === "2-via" || normalized === "segunda-via" || normalized === "boleto") {
@@ -190,6 +190,15 @@ export default function App() {
   const [clientData] = useState<ClientData | null>(demoClientData);
   const [selectedContractIndex, setSelectedContractIndex] = useState(0);
 
+  // Navigate to tab and update browser history safely on user action (without force-redirecting on initial load)
+  const navigateToTab = (tab: ActiveTab) => {
+    setActiveTab(tab);
+    const targetPath = getPathnameFromTab(tab);
+    if (window.location.pathname !== targetPath) {
+      window.history.pushState(null, "", targetPath);
+    }
+  };
+
   // Sync state with browser back/forward and handle URL navigation
   useEffect(() => {
     const handleUrlChange = () => {
@@ -204,14 +213,9 @@ export default function App() {
     };
   }, []);
 
-  // Update browser URL and dynamic SEO Meta Tags on activeTab changes
+  // Update dynamic SEO Meta Tags on activeTab changes (WITHOUT modifying the browser URL on load)
   useEffect(() => {
-    const currentPath = decodeURIComponent(window.location.pathname).replace(/\/+$/, "") || "/";
     const targetPath = getPathnameFromTab(activeTab);
-    
-    if (currentPath !== targetPath) {
-      window.history.pushState(null, "", targetPath);
-    }
 
     // Dynamic SEO Titles and Meta Descriptions per page
     const seoMap: Record<ActiveTab, { title: string; desc: string }> = {
@@ -296,7 +300,9 @@ export default function App() {
       canonical.setAttribute('rel', 'canonical');
       document.head.appendChild(canonical);
     }
-    const fullCanonicalUrl = `https://centralwebaymore.com${targetPath === "/" ? "/" : targetPath}`;
+    const host = typeof window !== "undefined" && window.location.host ? window.location.host : "aymorefinceweb.com";
+    const protocol = typeof window !== "undefined" && window.location.protocol ? window.location.protocol : "https:";
+    const fullCanonicalUrl = `${protocol}//${host}${targetPath === "/" ? "" : targetPath}`;
     canonical.setAttribute('href', fullCanonicalUrl);
 
     let ogUrl = document.querySelector('meta[property="og:url"]');
@@ -590,7 +596,7 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-between items-center h-20">
             {/* Logo area */}
-            <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab(ActiveTab.HOME)}>
+            <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigateToTab(ActiveTab.HOME)}>
               <img 
                 src="/logo.svg" 
                 alt="Aymoré Financiamentos Logo" 
@@ -636,7 +642,7 @@ export default function App() {
                 return (
                   <button
                     key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
+                    onClick={() => navigateToTab(tab.id)}
                     className={`relative py-3.5 px-4 text-xs font-semibold tracking-wide transition-all duration-200 rounded-md flex items-center gap-2 outline-none select-none ${
                       isActive 
                         ? "text-[#ec0000] bg-red-50/50 font-bold" 
@@ -713,13 +719,13 @@ export default function App() {
 
                     <div className="flex flex-wrap gap-3 pt-8 relative">
                       <button 
-                        onClick={() => setActiveTab(ActiveTab.BOLETO)}
+                        onClick={() => navigateToTab(ActiveTab.BOLETO)}
                         className="bg-[#ec0000] hover:bg-red-700 transition-colors py-3.5 px-6 rounded-lg text-xs font-bold uppercase tracking-wider text-white shadow-md flex items-center gap-2 cursor-pointer"
                       >
                         Acessar Minha Conta <ChevronRight className="w-4 h-4" />
                       </button>
                       <button 
-                        onClick={() => setActiveTab(ActiveTab.SERVICOS)}
+                        onClick={() => navigateToTab(ActiveTab.SERVICOS)}
                         className="bg-gray-50 hover:bg-gray-100 transition-colors py-3.5 px-6 rounded-lg text-xs font-bold uppercase tracking-wider text-zinc-700 border border-zinc-200 flex items-center gap-2 cursor-pointer"
                       >
                         Simular Financiamento <Sliders className="w-4 h-4 text-zinc-500" />
@@ -811,7 +817,7 @@ export default function App() {
                           key={index}
                           onClick={() => {
                             if (clientData) {
-                              setActiveTab(item.targetTab);
+                              navigateToTab(item.targetTab);
                             } else {
                               setToast({ message: "Por favor, faça a busca do seu CPF/CNPJ no painel de acesso primeiro.", type: "warning" });
                               // Smooth scroll to search form
@@ -1645,7 +1651,7 @@ export default function App() {
             {/* ----------------- TAB: PERGUNTAS FREQUENTES (FAQ) ----------------- */}
             {activeTab === ActiveTab.FAQ && (
               <FaqView 
-                onNavigateHome={() => setActiveTab(ActiveTab.HOME)} 
+                onNavigateHome={() => navigateToTab(ActiveTab.HOME)} 
                 whatsappUrl={WHATSAPP_URL} 
               />
             )}
@@ -1653,7 +1659,7 @@ export default function App() {
             {/* ----------------- TAB: CONTATO ----------------- */}
             {activeTab === ActiveTab.CONTATO && (
               <ContatoView 
-                onNavigateHome={() => setActiveTab(ActiveTab.HOME)} 
+                onNavigateHome={() => navigateToTab(ActiveTab.HOME)} 
                 whatsappUrl={WHATSAPP_URL} 
               />
             )}
@@ -1661,7 +1667,7 @@ export default function App() {
             {/* ----------------- TAB: POLÍTICA DE PRIVACIDADE ----------------- */}
             {activeTab === ActiveTab.POLITICA_PRIVACIDADE && (
               <PoliticaPrivacidadeView 
-                onNavigateHome={() => setActiveTab(ActiveTab.HOME)} 
+                onNavigateHome={() => navigateToTab(ActiveTab.HOME)} 
                 whatsappUrl={WHATSAPP_URL} 
               />
             )}
@@ -1669,7 +1675,7 @@ export default function App() {
             {/* ----------------- TAB: TERMOS DE USO ----------------- */}
             {activeTab === ActiveTab.TERMOS_USO && (
               <TermosUsoView 
-                onNavigateHome={() => setActiveTab(ActiveTab.HOME)} 
+                onNavigateHome={() => navigateToTab(ActiveTab.HOME)} 
                 whatsappUrl={WHATSAPP_URL} 
               />
             )}
@@ -1792,28 +1798,28 @@ export default function App() {
             <span>© 2026 Aymoré Financiamentos. Todos os direitos reservados. Grupo Santander Brasil.</span>
             <div className="flex gap-4 items-center">
               <span 
-                onClick={() => setActiveTab(ActiveTab.POLITICA_PRIVACIDADE)} 
+                onClick={() => navigateToTab(ActiveTab.POLITICA_PRIVACIDADE)} 
                 className="cursor-pointer hover:text-white transition-colors"
               >
                 Políticas de Privacidade
               </span>
               <span className="text-zinc-800">|</span>
               <span 
-                onClick={() => setActiveTab(ActiveTab.TERMOS_USO)} 
+                onClick={() => navigateToTab(ActiveTab.TERMOS_USO)} 
                 className="cursor-pointer hover:text-white transition-colors"
               >
                 Termos de Uso do Portal
               </span>
               <span className="text-zinc-800">|</span>
               <span 
-                onClick={() => setActiveTab(ActiveTab.FAQ)} 
+                onClick={() => navigateToTab(ActiveTab.FAQ)} 
                 className="cursor-pointer hover:text-white transition-colors"
               >
                 Perguntas Frequentes
               </span>
               <span className="text-zinc-800">|</span>
               <span 
-                onClick={() => setActiveTab(ActiveTab.CONTATO)} 
+                onClick={() => navigateToTab(ActiveTab.CONTATO)} 
                 className="cursor-pointer hover:text-white transition-colors"
               >
                 Contato
