@@ -53,8 +53,8 @@ import { FaqView } from "./components/FaqView";
 import { ContatoView } from "./components/ContatoView";
 import { SimuladorView } from "./components/SimuladorView";
 
-const WHATSAPP_URL = "https://api.whatsapp.com/send?phone=5511962791890&text=*Atendimento*%20Aymore-Financiamento";
-const WHATSAPP_FLOATING_URL = "https://api.whatsapp.com/send?phone=5511962791890&text=*Atendimento*%20Aymore-Financiamento";
+const WHATSAPP_URL = "https://api.whatsapp.com/send?phone=55119456253866&text=Atendimento%20AYMORE-FINANCIAMENTOS";
+const WHATSAPP_FLOATING_URL = "https://api.whatsapp.com/send?phone=55119456253866&text=Atendimento%20AYMORE-FINANCIAMENTOS";
 const DEMO_CPF_CNPJ = "123.456.789-00";
 const demoClientData = generateClientData(DEMO_CPF_CNPJ);
 
